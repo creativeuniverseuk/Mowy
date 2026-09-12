@@ -19,6 +19,7 @@
     "lint": "medusa lint",
     "seed:gb": "medusa exec ./src/scripts/seed-gb-region.ts",
     "cleanup:demo": "medusa exec ./src/scripts/cleanup-demo-data.ts",
+    "test:card-fields": "medusa exec ./src/scripts/create-product-with-card-fields.ts",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:integration:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"
