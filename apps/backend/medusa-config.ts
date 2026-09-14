@@ -3,6 +3,12 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
 module.exports = defineConfig({
+  plugins: [
+    {
+      resolve: "@rokmohar/medusa-plugin-meilisearch",
+      options: {},
+    },
+  ],
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     http: {
@@ -50,6 +56,23 @@ module.exports = defineConfig({
              *   },
              * }
              */
+          },
+        ],
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/search",
+      options: {
+        providers: [
+          {
+            resolve: "@rokmohar/medusa-plugin-meilisearch/providers/meilisearch",
+            id: "meilisearch",
+            options: {
+              config: {
+                host: process.env.MEILISEARCH_HOST!,
+                apiKey: process.env.MEILISEARCH_API_KEY,
+              },
+            },
           },
         ],
       },

@@ -20,6 +20,11 @@ out/
 apps/backend/.medusa/
 apps/backend/uploads/
 
+# Meilisearch (local dev binary + data dir, wherever it's run from)
+meilisearch*.exe
+data.ms/
+lock.mdb
+
 # Payload
 apps/storefront/media/
 

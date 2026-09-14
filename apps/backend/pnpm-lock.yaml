@@ -196,6 +196,9 @@ importers:
       '@medusajs/ui':
         specifier: 4.2.4
         version: 4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
+      '@rokmohar/medusa-plugin-meilisearch':
+        specifier: ^2.2.0
+        version: 2.2.0(@medusajs/admin-sdk@2.21.0)(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))(@medusajs/medusa@2.21.0)(@medusajs/ui@4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3))(@tanstack/react-query@5.64.2(react@18.3.1))(awilix@8.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
         specifier: 5.64.2
         version: 5.64.2(react@18.3.1)
@@ -2774,6 +2777,19 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
 
+  '@rokmohar/medusa-plugin-meilisearch@2.2.0':
+    resolution: {integrity: sha512-lVpQp74lZhz5gazI/yFkZ4Pmyumfel74kgmNY0Xer7xjxrzsSeLrJBVmp/Iz+Bqs3SafTlQb62nbOsKzayqxgA==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      '@medusajs/admin-sdk': ~2.21.0
+      '@medusajs/framework': ~2.21.0
+      '@medusajs/medusa': ~2.21.0
+      '@medusajs/ui': ^4.2.1
+      '@tanstack/react-query': 5.64.2
+      awilix: ^8.0.1
+      react: ^18.3.1
+      react-dom: ^18.3.1
+
   '@rolldown/pluginutils@1.0.0-rc.3':
     resolution: {integrity: sha512-eybk3TjzzzV97Dlj5c+XrBFW57eTNhzod66y9HrBlzJ6NsCrWCp/2kaPS3K9wJmurBC0Tdw4yPjXKZqlznim3Q==}
 
@@ -4904,6 +4920,9 @@ packages:
   media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
+
+  meilisearch@0.56.0:
+    resolution: {integrity: sha512-kBXba8DcSrLWHYqopCm2JL90oBy97VdIfHkP1ii7/eHufeEEEk9Zu5Vv/IFQpNzmhEpWszVFVlGvZoI6QJeGzA==}
 
   merge-descriptors@1.0.3:
     resolution: {integrity: sha512-gaNvAS7TZ897/rVaZ0nMtAyxNyi/pdbjbAwUpFQpN70GqnVfOiXpeUUMKRBmzXaSQ8DdTX4/0ms62r2K+hE6mQ==}
@@ -9727,6 +9746,18 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  '@rokmohar/medusa-plugin-meilisearch@2.2.0(@medusajs/admin-sdk@2.21.0)(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))(@medusajs/medusa@2.21.0)(@medusajs/ui@4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3))(@tanstack/react-query@5.64.2(react@18.3.1))(awilix@8.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@medusajs/admin-sdk': 2.21.0
+      '@medusajs/framework': 2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0)
+      '@medusajs/medusa': 2.21.0(1824cacd8a66f0887e66ab7375a2d700)
+      '@medusajs/ui': 4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
+      '@tanstack/react-query': 5.64.2(react@18.3.1)
+      awilix: 8.0.1
+      meilisearch: 0.56.0
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
   '@rollup/rollup-android-arm-eabi@4.63.1':
@@ -12080,6 +12111,8 @@ snapshots:
   meant@1.0.3: {}
 
   media-typer@0.3.0: {}
+
+  meilisearch@0.56.0: {}
 
   merge-descriptors@1.0.3: {}
 
