@@ -25,6 +25,10 @@ meilisearch*.exe
 data.ms/
 lock.mdb
 
+# ngrok (local tunnel binary, used for webhook testing)
+ngrok.exe
+ngrok
+
 # Payload
 apps/storefront/media/
 
