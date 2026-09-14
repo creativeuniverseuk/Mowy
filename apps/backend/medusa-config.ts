@@ -8,6 +8,10 @@ module.exports = defineConfig({
       resolve: "@rokmohar/medusa-plugin-meilisearch",
       options: {},
     },
+    {
+      resolve: "@sumup/medusa-plugin",
+      options: {},
+    },
   ],
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -72,6 +76,24 @@ module.exports = defineConfig({
                 host: process.env.MEILISEARCH_HOST!,
                 apiKey: process.env.MEILISEARCH_API_KEY,
               },
+            },
+          },
+        ],
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "@sumup/medusa-plugin/providers/sumup",
+            id: "sumup",
+            options: {
+              apiKey: process.env.SUMUP_API_KEY,
+              merchantCode: process.env.SUMUP_MERCHANT_CODE,
+              checkoutMode: "hosted",
+              returnUrl: `${process.env.MEDUSA_BACKEND_URL}/hooks/payment/sumup_sumup`,
+              redirectUrl: `${process.env.STOREFRONT_URL}/checkout/sumup/return`,
             },
           },
         ],

@@ -5,4 +5,18 @@ allowBuilds:
   msgpackr-extract: true
   protobufjs: true
 patchedDependencies:
+  '@sumup/medusa-plugin': patches/@sumup__medusa-plugin.patch
   '@tsc_tech/medusa-plugin-cloudinary': patches/@tsc_tech__medusa-plugin-cloudinary.patch
+# @tsc_tech/medusa-plugin-cloudinary's peerDependencies pin @mikro-orm/* to
+# 6.4.3 (an old Medusa 2.4.0-era version), which pnpm auto-installs as a
+# second, duplicate copy alongside Medusa's own @mikro-orm/*@6.6.14 (from
+# @medusajs/deps). Two MikroORM instances in the tree breaks its raw()-marker
+# check across the instance boundary, corrupting query building (see
+# medusajs/medusa#14149 — same error signature, same root cause). Force
+# everything onto Medusa's version to keep a single instance.
+overrides:
+  '@mikro-orm/cli': 6.6.14
+  '@mikro-orm/core': 6.6.14
+  '@mikro-orm/knex': 6.6.14
+  '@mikro-orm/migrations': 6.6.14
+  '@mikro-orm/postgresql': 6.6.14

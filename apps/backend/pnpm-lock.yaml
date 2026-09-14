@@ -162,7 +162,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@mikro-orm/cli': 6.6.14
+  '@mikro-orm/core': 6.6.14
+  '@mikro-orm/knex': 6.6.14
+  '@mikro-orm/migrations': 6.6.14
+  '@mikro-orm/postgresql': 6.6.14
+
 patchedDependencies:
+  '@sumup/medusa-plugin': ec56089ec5802b80c9be82fa662e09435319b40d096174ca07e5a40af246ec4d
   '@tsc_tech/medusa-plugin-cloudinary': a5e03e11344252581f487516d2e461acdf54bb0d8fcf110cc0d52837b2080bf1
 
 importers:
@@ -199,12 +207,15 @@ importers:
       '@rokmohar/medusa-plugin-meilisearch':
         specifier: ^2.2.0
         version: 2.2.0(@medusajs/admin-sdk@2.21.0)(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))(@medusajs/medusa@2.21.0)(@medusajs/ui@4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3))(@tanstack/react-query@5.64.2(react@18.3.1))(awilix@8.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@sumup/medusa-plugin':
+        specifier: 0.1.0
+        version: 0.1.0(patch_hash=ec56089ec5802b80c9be82fa662e09435319b40d096174ca07e5a40af246ec4d)(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))
       '@tanstack/react-query':
         specifier: 5.64.2
         version: 5.64.2(react@18.3.1)
       '@tsc_tech/medusa-plugin-cloudinary':
         specifier: ^1.0.0
-        version: 1.0.0(patch_hash=a5e03e11344252581f487516d2e461acdf54bb0d8fcf110cc0d52837b2080bf1)(ecf4a22208b3db1979f361401c7dbd81)
+        version: 1.0.0(patch_hash=a5e03e11344252581f487516d2e461acdf54bb0d8fcf110cc0d52837b2080bf1)(735e0b4fe875cffd7ec160111850d493)
       react-i18next:
         specifier: 13.5.0
         version: 13.5.0(i18next@23.7.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1613,45 +1624,20 @@ packages:
     resolution: {integrity: sha512-9xg5CbcPFvkLVuTl4G37WdCYSVmtC9VwGvqzZiyLqFg1YZYIE2GUbKMJBQ0ieGj4Qi/jnnBRYnVHltw4r/Wz+Q==}
     engines: {node: '>=20.0.0'}
 
-  '@mikro-orm/cli@6.4.3':
-    resolution: {integrity: sha512-DWnYNxoyMgU6L90TGBlT0eziTu6yl15ArnnFoq0kyOjp8JEMRjin+8cizSrKyQ3QiQZ5iop5fB0i9Sp+Hbgd8Q==}
-    engines: {node: '>= 18.12.0'}
-    hasBin: true
-
   '@mikro-orm/cli@6.6.14':
     resolution: {integrity: sha512-pYo6BBWJEaA9rOBJAyu6IK81v8wed8ScJ9Z3/suyHVAdul6h/Y37qU/FGQqnA8qM7801pMkCWr/36ybgAaYjeQ==}
     engines: {node: '>= 18.12.0'}
     hasBin: true
 
-  '@mikro-orm/core@6.4.3':
-    resolution: {integrity: sha512-UTaqKs1bomYtGmEEZ8sNBOmW2OqT5NcMh+pBV2iJ6WLM5MuiIEuNhDMuvvPE5gNEwUzc1HyRhUV87bRDhDIGRg==}
-    engines: {node: '>= 18.12.0'}
-
   '@mikro-orm/core@6.6.14':
     resolution: {integrity: sha512-jKdtf1A2wI2D48phOPJzTc3h7Bev64Ype0FHwbUgHEdZ5VxrCNLKOziFnYqMfPmBe0piVExLaPN2qXgbzCiApw==}
     engines: {node: '>= 18.12.0'}
-
-  '@mikro-orm/knex@6.4.3':
-    resolution: {integrity: sha512-gVkRD/cIn6qxk/P9nR+IufZxJwuCCdv0AtcGvShxXXvaoIrQPJYDV7HRxBOHCEyNygr6M3Fqpph1oPoT6aezTQ==}
-    engines: {node: '>= 18.12.0'}
-    peerDependencies:
-      '@mikro-orm/core': ^6.0.0
-      better-sqlite3: '*'
-      libsql: '*'
-      mariadb: '*'
-    peerDependenciesMeta:
-      better-sqlite3:
-        optional: true
-      libsql:
-        optional: true
-      mariadb:
-        optional: true
 
   '@mikro-orm/knex@6.6.14':
     resolution: {integrity: sha512-xQWq9+7TwE8LLul1RkhjB7/0/iCHMlkSmEToVpz+NNFoPj6M32DfY9mhNnM6qPZ/HF50WjpcVgCgi9ADrEBSFA==}
     engines: {node: '>= 18.12.0'}
     peerDependencies:
-      '@mikro-orm/core': ^6.0.0
+      '@mikro-orm/core': 6.6.14
       better-sqlite3: '*'
       libsql: '*'
       mariadb: '*'
@@ -1663,29 +1649,17 @@ packages:
       mariadb:
         optional: true
 
-  '@mikro-orm/migrations@6.4.3':
-    resolution: {integrity: sha512-VrsKq95esUBEMhwp9vVX+YUj2+/cNwb8UZ63HfgaqPo+pYj8r1RBSTboFOE9V0Md0n3ol9b5xByfPPa3qHmL0g==}
-    engines: {node: '>= 18.12.0'}
-    peerDependencies:
-      '@mikro-orm/core': ^6.0.0
-
   '@mikro-orm/migrations@6.6.14':
     resolution: {integrity: sha512-rigk6pVUF8499yuR3kJOa9B0hzkacLYeWYmNuH5005ECQNcbT2d4qqTvWjE96/PqxxnMesKg4RmesSIC7sIXvg==}
     engines: {node: '>= 18.12.0'}
     peerDependencies:
-      '@mikro-orm/core': ^6.0.0
-
-  '@mikro-orm/postgresql@6.4.3':
-    resolution: {integrity: sha512-3cGi1gW6ME3SyuRRiJmSBtzHFa6Kavy6bK9rsSAAfXz+Pso6UBsqvesATbruKxDF7/CLdQlIY3CZZHXksUIrQg==}
-    engines: {node: '>= 18.12.0'}
-    peerDependencies:
-      '@mikro-orm/core': ^6.0.0
+      '@mikro-orm/core': 6.6.14
 
   '@mikro-orm/postgresql@6.6.14':
     resolution: {integrity: sha512-hgyxpuTaXK0nYhhkmPkz8lx1nzhsqtOQuqQ+oabtyEKuqzPeANRJaV2TczIFYMIczyxKWOylV7g//13qrwqmNQ==}
     engines: {node: '>= 18.12.0'}
     peerDependencies:
-      '@mikro-orm/core': ^6.0.0
+      '@mikro-orm/core': 6.6.14
 
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.4':
     resolution: {integrity: sha512-LCkGo6JDfaBhgST7UpPWgNgLINpcpabaHfyz5OBx75nUYxBsaEPxjnyNjWpeb/xBup/682QnBfRBy2/LvPutZQ==}
@@ -3004,6 +2978,16 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
+  '@sumup/medusa-plugin@0.1.0':
+    resolution: {integrity: sha512-DBvgQ6OuRZcLKoz8cUbT8TjniNQJkAkVhVDl6LLkrhCoByoJ+hlBIVlDTaSzSlmb4t5X3ZgK4X9tyNi5Zxo+Cg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@medusajs/framework': ^2.15.5
+
+  '@sumup/sdk@0.1.9':
+    resolution: {integrity: sha512-+0w5IXUq+CfiUCVMftuSn2LXCqyoKw1XTjDSyJXJABYB6nimHY9mzQODNYPYqUdtZ073E/cqysYQhigfpzLkRw==}
+    engines: {node: '>=18'}
+
   '@swc/core-darwin-arm64@1.16.2':
     resolution: {integrity: sha512-i/j0HNbnn79qnTVPicvay92Nark8fW8NQqn1e2mGERjUXNpBV0+SwQxlRpk2zBhn6laJ8PDI6Kn1nHZhnz3LCA==}
     engines: {node: '>=10'}
@@ -3145,11 +3129,11 @@ packages:
       '@medusajs/medusa': 2.4.0
       '@medusajs/test-utils': 2.4.0
       '@medusajs/ui': 4.0.3
-      '@mikro-orm/cli': 6.4.3
-      '@mikro-orm/core': 6.4.3
-      '@mikro-orm/knex': 6.4.3
-      '@mikro-orm/migrations': 6.4.3
-      '@mikro-orm/postgresql': 6.4.3
+      '@mikro-orm/cli': 6.6.14
+      '@mikro-orm/core': 6.6.14
+      '@mikro-orm/knex': 6.6.14
+      '@mikro-orm/migrations': 6.6.14
+      '@mikro-orm/postgresql': 6.6.14
       awilix: ^8.0.1
       pg: ^8.13.0
 
@@ -3948,10 +3932,6 @@ packages:
     resolution: {integrity: sha512-zIHwmZPRshsCdpMDyVsqGmgyP0yT8GAgXUnkdAoJisxvf33k7yO6OuoKmcTGuXPWSsm8Oh88nZicRLA9Y0rUeA==}
     engines: {node: '>=12'}
 
-  dotenv@16.4.7:
-    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
-    engines: {node: '>=12'}
-
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
@@ -4169,10 +4149,6 @@ packages:
 
   fs-exists-cached@1.0.0:
     resolution: {integrity: sha512-kSxoARUDn4F2RPXX48UXnaFKwVU7Ivd/6qpzZL29MCDmr9sTvybv4gFCp+qaI4fM9m0z9fgz/yJvi56GAz+BZg==}
-
-  fs-extra@11.2.0:
-    resolution: {integrity: sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==}
-    engines: {node: '>=14.14'}
 
   fs-extra@11.3.3:
     resolution: {integrity: sha512-VWSRii4t0AFm6ixFFmLLx1t7wS1gh+ckoa84aOeapGum0h+EZd1EhEumSB+ZdDLnEPuucsVB9oB7cxJHap6Afg==}
@@ -4720,34 +4696,6 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
-  knex@3.1.0:
-    resolution: {integrity: sha512-GLoII6hR0c4ti243gMs5/1Rb3B+AjwMOfjYm97pu0FOQa7JH56hgBxYf5WK2525ceSbBY1cjeZ9yk99GPMB6Kw==}
-    engines: {node: '>=16'}
-    hasBin: true
-    peerDependencies:
-      better-sqlite3: '*'
-      mysql: '*'
-      mysql2: '*'
-      pg: '*'
-      pg-native: '*'
-      sqlite3: '*'
-      tedious: '*'
-    peerDependenciesMeta:
-      better-sqlite3:
-        optional: true
-      mysql:
-        optional: true
-      mysql2:
-        optional: true
-      pg:
-        optional: true
-      pg-native:
-        optional: true
-      sqlite3:
-        optional: true
-      tedious:
-        optional: true
-
   knex@3.2.10:
     resolution: {integrity: sha512-oypTHfrc9i72iyxaUQBKHOxhcr0xM65MPf6FpN02nimsftXwzXprIkLjfXdubvhbu4PMWLp023q8o8CYvHSuZw==}
     engines: {node: '>=16'}
@@ -4941,10 +4889,6 @@ packages:
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
-
-  mikro-orm@6.4.3:
-    resolution: {integrity: sha512-xDNzmLiL4EUTMOu9CbZ2d0sNIaUdH4RzDv4oqw27+u0/FPfvZTIagd+luxx1lWWqe/vg/iNtvqr5OcNQIYYrtQ==}
-    engines: {node: '>= 18.12.0'}
 
   mikro-orm@6.6.14:
     resolution: {integrity: sha512-SRVEqIrANwlVwZxJUoSXHgpzGgSpaoOiG7XrnYlh7TYehbJRbxE3xIhJNdNw0t7FIItixFUvLnD6A20bvLnUNw==}
@@ -5259,15 +5203,6 @@ packages:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
     engines: {node: '>=4'}
 
-  pg@8.13.1:
-    resolution: {integrity: sha512-OUir1A0rPNZlX//c7ksiu7crsGZTKSOXJPgtNiHGIlC9H0lO+NC6ZDYksSgBYY/thSWhnSRBv8w1lieNNGATNQ==}
-    engines: {node: '>= 8.0.0'}
-    peerDependencies:
-      pg-native: '>=3.0.1'
-    peerDependenciesMeta:
-      pg-native:
-        optional: true
-
   pg@8.20.0:
     resolution: {integrity: sha512-ldhMxz2r8fl/6QkXnBD3CR9/xg694oT6DZQ2s6c/RI28OjtSOpxnPrUCGOBJ46RCUxcWdx3p6kw/xnDHjKvaRA==}
     engines: {node: '>= 16.0.0'}
@@ -5370,10 +5305,6 @@ packages:
   postgres-array@2.0.0:
     resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
     engines: {node: '>=4'}
-
-  postgres-array@3.0.2:
-    resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
-    engines: {node: '>=12'}
 
   postgres-array@3.0.4:
     resolution: {integrity: sha512-nAUSGfSDGOaOAEGwqsRY27GPOea7CNipJPOA7lPbdEpx5Kg3qzdP0AaWC5MlhTWV9s4hFX39nomVZ+C4tnGOJQ==}
@@ -8304,26 +8235,6 @@ snapshots:
       - supports-color
       - tedious
 
-  '@mikro-orm/cli@6.4.3(pg@8.23.0)(supports-color@8.1.1)':
-    dependencies:
-      '@jercle/yargonaut': 1.1.5
-      '@mikro-orm/core': 6.4.3
-      '@mikro-orm/knex': 6.4.3(@mikro-orm/core@6.4.3)(pg@8.23.0)(supports-color@8.1.1)
-      fs-extra: 11.2.0
-      tsconfig-paths: 4.2.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - better-sqlite3
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-
   '@mikro-orm/cli@6.6.14(pg@8.23.0)(supports-color@8.1.1)':
     dependencies:
       '@jercle/yargonaut': 1.1.5
@@ -8345,16 +8256,6 @@ snapshots:
       - supports-color
       - tedious
 
-  '@mikro-orm/core@6.4.3':
-    dependencies:
-      dataloader: 2.2.3
-      dotenv: 16.4.7
-      esprima: 4.0.1
-      fs-extra: 11.2.0
-      globby: 11.1.0
-      mikro-orm: 6.4.3
-      reflect-metadata: 0.2.2
-
   '@mikro-orm/core@6.6.14':
     dependencies:
       dataloader: 2.2.3
@@ -8364,36 +8265,6 @@ snapshots:
       globby: 11.1.0
       mikro-orm: 6.6.14
       reflect-metadata: 0.2.2
-
-  '@mikro-orm/knex@6.4.3(@mikro-orm/core@6.4.3)(pg@8.13.1)(supports-color@8.1.1)':
-    dependencies:
-      '@mikro-orm/core': 6.4.3
-      fs-extra: 11.2.0
-      knex: 3.1.0(pg@8.13.1)(supports-color@8.1.1)
-      sqlstring: 2.3.3
-    transitivePeerDependencies:
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-
-  '@mikro-orm/knex@6.4.3(@mikro-orm/core@6.4.3)(pg@8.23.0)(supports-color@8.1.1)':
-    dependencies:
-      '@mikro-orm/core': 6.4.3
-      fs-extra: 11.2.0
-      knex: 3.1.0(pg@8.23.0)(supports-color@8.1.1)
-      sqlstring: 2.3.3
-    transitivePeerDependencies:
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
 
   '@mikro-orm/knex@6.6.14(@mikro-orm/core@6.6.14)(pg@8.20.0)(supports-color@8.1.1)':
     dependencies:
@@ -8427,25 +8298,6 @@ snapshots:
       - supports-color
       - tedious
 
-  '@mikro-orm/migrations@6.4.3(@mikro-orm/core@6.4.3)(@types/node@20.19.43)(pg@8.23.0)(supports-color@8.1.1)':
-    dependencies:
-      '@mikro-orm/core': 6.4.3
-      '@mikro-orm/knex': 6.4.3(@mikro-orm/core@6.4.3)(pg@8.23.0)(supports-color@8.1.1)
-      fs-extra: 11.2.0
-      umzug: 3.8.2(@types/node@20.19.43)
-    transitivePeerDependencies:
-      - '@types/node'
-      - better-sqlite3
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-
   '@mikro-orm/migrations@6.6.14(@mikro-orm/core@6.6.14)(@types/node@20.19.43)(pg@8.23.0)(supports-color@8.1.1)':
     dependencies:
       '@mikro-orm/core': 6.6.14
@@ -8462,25 +8314,6 @@ snapshots:
       - pg
       - pg-native
       - pg-query-stream
-      - sqlite3
-      - supports-color
-      - tedious
-
-  '@mikro-orm/postgresql@6.4.3(@mikro-orm/core@6.4.3)(supports-color@8.1.1)':
-    dependencies:
-      '@mikro-orm/core': 6.4.3
-      '@mikro-orm/knex': 6.4.3(@mikro-orm/core@6.4.3)(pg@8.13.1)(supports-color@8.1.1)
-      pg: 8.13.1
-      postgres-array: 3.0.2
-      postgres-date: 2.1.0
-      postgres-interval: 4.0.2
-    transitivePeerDependencies:
-      - better-sqlite3
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg-native
       - sqlite3
       - supports-color
       - tedious
@@ -9936,6 +9769,13 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
+  '@sumup/medusa-plugin@0.1.0(patch_hash=ec56089ec5802b80c9be82fa662e09435319b40d096174ca07e5a40af246ec4d)(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))':
+    dependencies:
+      '@medusajs/framework': 2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0)
+      '@sumup/sdk': 0.1.9
+
+  '@sumup/sdk@0.1.9': {}
+
   '@swc/core-darwin-arm64@1.16.2':
     optional: true
 
@@ -10031,7 +9871,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.10': {}
 
-  '@tsc_tech/medusa-plugin-cloudinary@1.0.0(patch_hash=a5e03e11344252581f487516d2e461acdf54bb0d8fcf110cc0d52837b2080bf1)(ecf4a22208b3db1979f361401c7dbd81)':
+  '@tsc_tech/medusa-plugin-cloudinary@1.0.0(patch_hash=a5e03e11344252581f487516d2e461acdf54bb0d8fcf110cc0d52837b2080bf1)(735e0b4fe875cffd7ec160111850d493)':
     dependencies:
       '@medusajs/admin-sdk': 2.21.0
       '@medusajs/cli': 2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
@@ -10040,11 +9880,11 @@ snapshots:
       '@medusajs/medusa': 2.21.0(1824cacd8a66f0887e66ab7375a2d700)
       '@medusajs/test-utils': 2.21.0(@medusajs/core-flows@2.21.0(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0)))(@medusajs/framework@2.21.0(@medusajs/cli@2.21.0(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(@types/node@20.19.43)(debug@4.4.3(supports-color@8.1.1))(ioredis@5.11.1(supports-color@8.1.1))(supports-color@8.1.1)(vite@7.3.6(@types/node@20.19.43)(jiti@1.21.7)(yaml@2.9.1))(zod@4.2.0))(@medusajs/medusa@2.21.0)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@medusajs/ui': 4.2.4(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
-      '@mikro-orm/cli': 6.4.3(pg@8.23.0)(supports-color@8.1.1)
-      '@mikro-orm/core': 6.4.3
-      '@mikro-orm/knex': 6.4.3(@mikro-orm/core@6.4.3)(pg@8.23.0)(supports-color@8.1.1)
-      '@mikro-orm/migrations': 6.4.3(@mikro-orm/core@6.4.3)(@types/node@20.19.43)(pg@8.23.0)(supports-color@8.1.1)
-      '@mikro-orm/postgresql': 6.4.3(@mikro-orm/core@6.4.3)(supports-color@8.1.1)
+      '@mikro-orm/cli': 6.6.14(pg@8.23.0)(supports-color@8.1.1)
+      '@mikro-orm/core': 6.6.14
+      '@mikro-orm/knex': 6.6.14(@mikro-orm/core@6.6.14)(pg@8.23.0)(supports-color@8.1.1)
+      '@mikro-orm/migrations': 6.6.14(@mikro-orm/core@6.6.14)(@types/node@20.19.43)(pg@8.23.0)(supports-color@8.1.1)
+      '@mikro-orm/postgresql': 6.6.14(@mikro-orm/core@6.6.14)(supports-color@8.1.1)
       awilix: 8.0.1
       cloudinary: 2.11.0
       pg: 8.23.0
@@ -10891,8 +10731,6 @@ snapshots:
     dependencies:
       dotenv: 16.6.1
 
-  dotenv@16.4.7: {}
-
   dotenv@16.6.1: {}
 
   dotenv@17.3.1: {}
@@ -11147,12 +10985,6 @@ snapshots:
   fresh@0.5.2: {}
 
   fs-exists-cached@1.0.0: {}
-
-  fs-extra@11.2.0:
-    dependencies:
-      graceful-fs: 4.2.11
-      jsonfile: 6.2.1
-      universalify: 2.0.1
 
   fs-extra@11.3.3:
     dependencies:
@@ -11908,48 +11740,6 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  knex@3.1.0(pg@8.13.1)(supports-color@8.1.1):
-    dependencies:
-      colorette: 2.0.19
-      commander: 10.0.1
-      debug: 4.3.4(supports-color@8.1.1)
-      escalade: 3.2.0
-      esm: 3.2.25
-      get-package-type: 0.1.0
-      getopts: 2.3.0
-      interpret: 2.2.0
-      lodash: 4.18.1
-      pg-connection-string: 2.6.2
-      rechoir: 0.8.0
-      resolve-from: 5.0.0
-      tarn: 3.1.2
-      tildify: 2.0.0
-    optionalDependencies:
-      pg: 8.13.1
-    transitivePeerDependencies:
-      - supports-color
-
-  knex@3.1.0(pg@8.23.0)(supports-color@8.1.1):
-    dependencies:
-      colorette: 2.0.19
-      commander: 10.0.1
-      debug: 4.3.4(supports-color@8.1.1)
-      escalade: 3.2.0
-      esm: 3.2.25
-      get-package-type: 0.1.0
-      getopts: 2.3.0
-      interpret: 2.2.0
-      lodash: 4.18.1
-      pg-connection-string: 2.6.2
-      rechoir: 0.8.0
-      resolve-from: 5.0.0
-      tarn: 3.1.2
-      tildify: 2.0.0
-    optionalDependencies:
-      pg: 8.23.0
-    transitivePeerDependencies:
-      - supports-color
-
   knex@3.2.10(pg@8.20.0)(supports-color@8.1.1):
     dependencies:
       colorette: 2.0.19
@@ -12126,8 +11916,6 @@ snapshots:
     dependencies:
       braces: 3.0.3
       picomatch: 2.3.2
-
-  mikro-orm@6.4.3: {}
 
   mikro-orm@6.6.14: {}
 
@@ -12408,10 +12196,6 @@ snapshots:
 
   pg-int8@1.0.1: {}
 
-  pg-pool@3.14.0(pg@8.13.1):
-    dependencies:
-      pg: 8.13.1
-
   pg-pool@3.14.0(pg@8.20.0):
     dependencies:
       pg: 8.20.0
@@ -12429,16 +12213,6 @@ snapshots:
       postgres-bytea: 1.0.1
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
-
-  pg@8.13.1:
-    dependencies:
-      pg-connection-string: 2.14.0
-      pg-pool: 3.14.0(pg@8.13.1)
-      pg-protocol: 1.16.0
-      pg-types: 2.2.0
-      pgpass: 1.0.5
-    optionalDependencies:
-      pg-cloudflare: 1.4.0
 
   pg@8.20.0:
     dependencies:
@@ -12521,8 +12295,6 @@ snapshots:
       source-map-js: 1.2.1
 
   postgres-array@2.0.0: {}
-
-  postgres-array@3.0.2: {}
 
   postgres-array@3.0.4: {}
 

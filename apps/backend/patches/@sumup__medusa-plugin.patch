@@ -1,0 +1,147 @@
+# Why this patch exists:
+# Upstream bug in @sumup/medusa-plugin@0.1.0 — its toMajorUnitNumber() helper
+# is named as if it converts Medusa's minor-unit amounts (e.g. pence) to the
+# major units SumUp's API expects (e.g. pounds), but it never actually
+# divided by anything — it just coerced Medusa's BigNumber-shaped amount into
+# a plain JS number and returned it unchanged. SumUp's own SDK documents
+# `amount` as "expressed in major units", so every checkout and refund this
+# plugin created was submitted at 100x the intended charge (e.g. a £11.00
+# cart total was sent to SumUp as 1100, which SumUp records as £1,100.00).
+# Confirmed directly against SumUp's API: GET on a created checkout showed
+# "amount": 1100 for an intended £11.00 charge.
+#
+# Fix: toMajorUnitNumber() now divides by the currency's own decimal-digit
+# factor (via @medusajs/framework/utils's defaultCurrencies), not a blind
+# /100 — currencies like JPY/CLP have 0 decimal places and would be wrong
+# under a hardcoded divisor. Applied at all three call sites that funnel
+# through this same broken helper: checkout creation
+# (providers/sumup/utils.js, createCheckoutPayload), refunds
+# (providers/sumup/service.js, refundPayment), and the cart-total-changed
+# reconciliation path (providers/sumup/service.js, updatePayment) — the last
+# of these was missed in the first pass of this patch and added afterward;
+# it only looked correct before because GBP's 2-decimal default happened to
+# match the unpatched fallback.
+#
+# No upstream issue filed yet as of writing — worth reporting to the
+# plugin's GitHub repo (github.com/sumup/medusa-plugin-sumup) when there's
+# time (not urgent, but this is a payment-correctness bug, not cosmetic).
+# Safe to delete this patch (and its entry in pnpm-workspace.yaml /
+# pnpm-lock.yaml) once upstream ships a fix and the dependency is upgraded
+# past it.
+diff --git a/.medusa/server/src/providers/sumup/service.js b/.medusa/server/src/providers/sumup/service.js
+index 9a0bcd193987d9d31768d1087cd65cf9ebeaa4cc..60f978902fda08f73f829595b6128ffd229b0af7 100644
+--- a/.medusa/server/src/providers/sumup/service.js
++++ b/.medusa/server/src/providers/sumup/service.js
+@@ -70,7 +70,7 @@ class SumUpPaymentProviderService extends utils_1.AbstractPaymentProvider {
+         if (!transactionId) {
+             throw new utils_1.MedusaError(utils_1.MedusaError.Types.INVALID_DATA, "Cannot refund SumUp payment without a successful transaction id.");
+         }
+-        await this.client_.refundTransaction(transactionId, (0, utils_2.toMajorUnitNumber)(amount));
++        await this.client_.refundTransaction(transactionId, (0, utils_2.toMajorUnitNumber)(amount, paymentData?.currency ?? nextData?.currency));
+         return {
+             data: nextData,
+         };
+@@ -109,7 +109,7 @@ class SumUpPaymentProviderService extends utils_1.AbstractPaymentProvider {
+     async updatePayment(input) {
+         const checkout = await this.retrieveProviderCheckout(input.data);
+         const status = (0, utils_2.mapCheckoutToSessionStatus)(checkout);
+-        const currentAmount = (0, utils_2.toMajorUnitNumber)(input.amount);
++        const currentAmount = (0, utils_2.toMajorUnitNumber)(input.amount, input.currency_code);
+         const currentCurrency = input.currency_code.toUpperCase();
+         if (checkout.amount === currentAmount &&
+             checkout.currency === currentCurrency) {
+diff --git a/.medusa/server/src/providers/sumup/utils.d.ts b/.medusa/server/src/providers/sumup/utils.d.ts
+index f2a06de1ecbe6fe30a86ed7a40525c7182c05172..6004e3be118e8db0ae6ed34c9f7c35a0a6700e26 100644
+--- a/.medusa/server/src/providers/sumup/utils.d.ts
++++ b/.medusa/server/src/providers/sumup/utils.d.ts
+@@ -2,7 +2,7 @@ import type { BigNumberInput } from "@medusajs/framework/types";
+ import { PaymentActions, PaymentSessionStatus } from "@medusajs/framework/utils";
+ import type { Checkout, CheckoutCreateRequest, CheckoutSuccess, Currency } from "@sumup/sdk";
+ import type { SumUpCheckoutMode, SumUpPaymentData, SumUpProviderOptions } from "./types";
+-export declare function toMajorUnitNumber(amount: BigNumberInput): number;
++export declare function toMajorUnitNumber(amount: BigNumberInput, currencyCode?: string): number;
+ export declare function normalizeCurrency(currencyCode: string): Currency;
+ export declare function resolveCheckoutMode(options: SumUpProviderOptions, data?: Record<string, unknown>): SumUpCheckoutMode;
+ export declare function createCheckoutReference(data?: Record<string, unknown>, idempotencyKey?: string): string;
+diff --git a/.medusa/server/src/providers/sumup/utils.js b/.medusa/server/src/providers/sumup/utils.js
+index 86e469d8383cb938f761ceca101f5a33634c238c..4374edaeec10af3aa6ff1f4e7c6aafe9d0480812 100644
+--- a/.medusa/server/src/providers/sumup/utils.js
++++ b/.medusa/server/src/providers/sumup/utils.js
+@@ -31,30 +31,45 @@ const SUPPORTED_CURRENCIES = new Set([
+     "SEK",
+     "USD",
+ ]);
+-function toMajorUnitNumber(amount) {
++// Upstream bug: this used to return the coerced minor-unit number
++// unchanged, despite its name — SumUp's API documents `amount` as
++// "expressed in major units", so every checkout/refund was submitted at
++// 100x the intended charge. Now divides by the currency's own decimal-digit
++// factor (not a blind /100 — currencies like JPY/CLP have 0 decimal places).
++function toMajorUnitNumber(amount, currencyCode) {
++    let value;
+     if (typeof amount === "number") {
+-        return amount;
+-    }
+-    if (typeof amount === "string") {
+-        return Number(amount);
+-    }
+-    const value = amount;
+-    if (typeof value.numeric === "number") {
+-        return value.numeric;
+-    }
+-    if (value.value !== undefined) {
+-        return Number(value.value);
+-    }
+-    if (value.raw?.value !== undefined) {
+-        return Number(value.raw.value);
+-    }
+-    if (typeof value.bigNumber?.toNumber === "function") {
+-        return value.bigNumber.toNumber();
+-    }
+-    if (typeof value.toNumber === "function") {
+-        return value.toNumber();
+-    }
+-    return Number(amount);
++        value = amount;
++    }
++    else if (typeof amount === "string") {
++        value = Number(amount);
++    }
++    else {
++        const raw = amount;
++        if (typeof raw.numeric === "number") {
++            value = raw.numeric;
++        }
++        else if (raw.value !== undefined) {
++            value = Number(raw.value);
++        }
++        else if (raw.raw?.value !== undefined) {
++            value = Number(raw.raw.value);
++        }
++        else if (typeof raw.bigNumber?.toNumber === "function") {
++            value = raw.bigNumber.toNumber();
++        }
++        else if (typeof raw.toNumber === "function") {
++            value = raw.toNumber();
++        }
++        else {
++            value = Number(amount);
++        }
++    }
++    const decimalDigits = currencyCode
++        ? utils_1.defaultCurrencies[currencyCode.toUpperCase()]?.decimal_digits ?? 2
++        : 2;
++    const divisor = 10 ** decimalDigits;
++    return Number((value / divisor).toFixed(decimalDigits));
+ }
+ function normalizeCurrency(currencyCode) {
+     const currency = currencyCode.toUpperCase();
+@@ -88,7 +103,7 @@ function createCheckoutPayload({ amount, currencyCode, data, options, }) {
+         "Medusa order payment";
+     return {
+         checkout_reference: createCheckoutReference(data, data?.idempotency_key),
+-        amount: toMajorUnitNumber(amount),
++        amount: toMajorUnitNumber(amount, currencyCode),
+         currency: normalizeCurrency(currencyCode),
+         merchant_code: options.merchantCode,
+         description,

@@ -109,6 +109,19 @@ or UUID in a public URL.
   base64-encoded, so the bytes get corrupted and Cloudinary miscategorizes every
   upload as `raw` instead of `image`. Not yet reported upstream. Safe to drop
   (and remove its entry from `pnpm-workspace.yaml`) once a fixed version ships.
+- `apps/backend/patches/@sumup__medusa-plugin.patch` — pnpm patch fixing a
+  payment-correctness bug in `@sumup/medusa-plugin@0.1.0`: its
+  `toMajorUnitNumber()` helper was named as if it converted Medusa's
+  minor-unit amounts (pence) to the major units SumUp's API expects (pounds),
+  but never actually divided — every checkout and refund was submitted at
+  100x the intended charge (confirmed directly against SumUp's API: an
+  intended £11.00 charge was sent as `amount: 1100`, i.e. £1,100.00 by
+  SumUp's own accounting). Fixed to divide by the currency's actual
+  decimal-digit factor (via `@medusajs/framework/utils`'s
+  `defaultCurrencies`), not a hardcoded `/100` — zero-decimal currencies
+  (JPY, CLP) would be wrong under that. Not yet reported upstream. Safe to
+  drop (and remove its entry from `pnpm-workspace.yaml`) once a fixed version
+  ships.
 
 ## Status
 
