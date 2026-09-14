@@ -100,6 +100,16 @@ or UUID in a public URL.
   `apps/storefront` — re-implement to match, using the real stack's components and
   conventions
 
+## Known upstream issues
+
+- `apps/backend/patches/@tsc_tech__medusa-plugin-cloudinary.patch` — pnpm patch
+  fixing a bug in `@tsc_tech/medusa-plugin-cloudinary@1.0.0`'s file-cloudinary
+  provider: it decodes Medusa's uploaded file content with
+  `Buffer.from(file.content, "binary")`, but Medusa sends that content
+  base64-encoded, so the bytes get corrupted and Cloudinary miscategorizes every
+  upload as `raw` instead of `image`. Not yet reported upstream. Safe to drop
+  (and remove its entry from `pnpm-workspace.yaml`) once a fixed version ships.
+
 ## Status
 
 Repo initialised with documentation only. No app code scaffolded yet.

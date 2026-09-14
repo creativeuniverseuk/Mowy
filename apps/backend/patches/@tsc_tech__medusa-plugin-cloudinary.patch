@@ -1,0 +1,31 @@
+# Why this patch exists:
+# Upstream bug in @tsc_tech/medusa-plugin-cloudinary@1.0.0 — its file-cloudinary
+# provider decodes Medusa's upload content with Buffer.from(file.content, "binary"),
+# but Medusa's file module sends `content` base64-encoded (see
+# ProviderUploadFileDTO in @medusajs/types). Decoding base64 as "binary" (latin1)
+# corrupts the bytes, which strips the image's magic number, so Cloudinary's
+# resource_type: "auto" falls back to "raw" for every upload — product images
+# ended up at /raw/upload/... instead of /image/upload/... and didn't render.
+#
+# Fix: decode with "base64" instead. No upstream issue filed yet as of writing —
+# worth reporting to the plugin's GitHub repo when there's time (not urgent).
+# Safe to delete this patch (and its entry in pnpm-workspace.yaml /
+# pnpm-lock.yaml) once upstream ships a fix and the dependency is upgraded past it.
+diff --git a/.medusa/server/src/providers/file-cloudinary/service.js b/.medusa/server/src/providers/file-cloudinary/service.js
+index 865995feee90dfad2d105e387040e0801282a2de..646a3f93173a212c0d9973e965663c18a471a326 100644
+--- a/.medusa/server/src/providers/file-cloudinary/service.js
++++ b/.medusa/server/src/providers/file-cloudinary/service.js
+@@ -23,8 +23,11 @@ class CloudinaryFileProviderService extends utils_1.AbstractFileProviderService
+     }
+     async upload(file) {
+         const publicId = this.generatePublicId(file.filename);
+-        // Convert binary-encoded string to Buffer
+-        const buffer = Buffer.from(file.content, "binary");
++        // Medusa's file module sends `content` as a base64-encoded string
++        // (see ProviderUploadFileDTO); decoding it as "binary" (latin1)
++        // corrupts the bytes, which strips valid image magic numbers and
++        // makes Cloudinary's resource_type: "auto" fall back to "raw".
++        const buffer = Buffer.from(file.content, "base64");
+         return new Promise((resolve, reject) => {
+             const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+                 resource_type: "auto",

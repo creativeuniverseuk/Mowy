@@ -4,3 +4,5 @@ allowBuilds:
   esbuild: true
   msgpackr-extract: true
   protobufjs: true
+patchedDependencies:
+  '@tsc_tech/medusa-plugin-cloudinary': patches/@tsc_tech__medusa-plugin-cloudinary.patch
