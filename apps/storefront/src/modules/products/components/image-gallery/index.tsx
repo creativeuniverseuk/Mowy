@@ -1,41 +1,81 @@
+"use client"
+
 import { HttpTypes } from "@medusajs/types"
-import { Container } from "@medusajs/ui"
+import { AnimatePresence, motion } from "framer-motion"
 import Image from "next/image"
+import { useState } from "react"
 
-type ImageGalleryProps = {
+export default function ImageGallery({
+  images,
+  title,
+}: {
   images: HttpTypes.StoreProductImage[]
-}
+  title: string
+}) {
+  const [active, setActive] = useState(0)
+  const current = images[active]
 
-const ImageGallery = ({ images }: ImageGalleryProps) => {
   return (
-    <div className="flex items-start relative">
-      <div className="flex flex-col flex-1 small:mx-16 gap-y-4">
-        {images.map((image, index) => {
-          return (
-            <Container
-              key={image.id}
-              className="relative aspect-[29/34] w-full overflow-hidden bg-ui-bg-subtle"
-              id={image.id}
+    <div className="flex w-full flex-col gap-4">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[14px] border border-line bg-panel">
+        {current?.url ? (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute inset-0"
             >
-              {!!image.url && (
+              <Image
+                src={current.url}
+                alt={`${title} — image ${active + 1}`}
+                fill
+                priority
+                sizes="(max-width: 1024px) 90vw, 560px"
+                className="object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(150deg,#26314a,#12151d)",
+            }}
+          />
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="no-scrollbar flex gap-3 overflow-x-auto">
+          {images.map((image, i) => (
+            <button
+              key={image.id}
+              type="button"
+              onClick={() => setActive(i)}
+              className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border transition-colors ${
+                i === active
+                  ? "border-cobalt"
+                  : "border-line hover:border-cobalt-soft"
+              }`}
+              aria-label={`Show image ${i + 1}`}
+              aria-current={i === active}
+            >
+              {image.url && (
                 <Image
                   src={image.url}
-                  priority={index <= 2 ? true : false}
-                  className="absolute inset-0 rounded-rounded"
-                  alt={`Product image ${index + 1}`}
+                  alt=""
                   fill
-                  sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
-                  style={{
-                    objectFit: "cover",
-                  }}
+                  sizes="80px"
+                  className="object-cover"
                 />
               )}
-            </Container>
-          )
-        })}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
-
-export default ImageGallery

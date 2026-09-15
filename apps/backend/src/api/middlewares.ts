@@ -64,6 +64,40 @@ async function validateCardAdditionalData(
   next();
 }
 
+// The core GET /store/products route validates `fields` against a fixed
+// allowlist (@medusajs/medusa/api/store/products/query-config.ts) that has
+// no idea about our card_detail link. req.allowed is the documented escape
+// hatch (see MedusaRequest["allowed"] in @medusajs/framework/http) — a
+// middleware can push to it before the core route's own field-validation
+// middleware runs, so `fields=+card_detail.*` resolves instead of being
+// silently stripped.
+async function allowCardDetailFields(
+  req: MedusaRequest,
+  _res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  req.allowed ??= [];
+  req.allowed.push(
+    "card_detail",
+    "card_detail.id",
+    "card_detail.card_set",
+    "card_detail.rarity",
+    "card_detail.condition",
+    "card_detail.is_graded",
+    "card_detail.grading_company",
+    "card_detail.grade",
+    // "categories" is in the core route's extra-fields allowlist, but only
+    // as a bare relation name — its own sub-fields (needed by the
+    // storefront for related-by-category lookups) aren't, same gap as
+    // card_detail above.
+    "categories.id",
+    "categories.name",
+    "categories.handle"
+  );
+
+  next();
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -78,6 +112,11 @@ export default defineMiddlewares({
         grade: z.number().optional(),
       },
       middlewares: [validateCardAdditionalData],
+    },
+    {
+      matcher: "/store/products*",
+      methods: ["GET"],
+      middlewares: [allowCardDetailFields],
     },
   ],
 });

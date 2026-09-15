@@ -42,6 +42,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "medusa-server-testing.s3.us-east-1.amazonaws.com",
       },
+      {
+        // File storage provider (@tsc_tech/medusa-plugin-cloudinary/providers/file-cloudinary — see CLAUDE.md).
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
       ...(S3_HOSTNAME && S3_PATHNAME
         ? [
             {

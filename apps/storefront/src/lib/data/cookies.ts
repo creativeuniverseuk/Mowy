@@ -40,13 +40,20 @@ export const getCacheOptions = async (
     return {}
   }
 
-  const cacheTag = await getCacheTag(tag)
+  const sessionCacheTag = await getCacheTag(tag)
 
-  if (!cacheTag) {
+  // `tag` alone, with no per-session suffix, is what lets a server-side
+  // revalidateTag(tag) call (e.g. from /api/revalidate, hit by a backend
+  // subscriber after an admin edit) invalidate this fetch for every
+  // visitor — the session-scoped tag on its own only ever gets revalidated
+  // from within that same session (see locale-actions.ts).
+  const tags = [tag, sessionCacheTag].filter(Boolean)
+
+  if (!tags.length) {
     return {}
   }
 
-  return { tags: [`${cacheTag}`] }
+  return { tags }
 }
 
 export const setAuthToken = async (token: string) => {

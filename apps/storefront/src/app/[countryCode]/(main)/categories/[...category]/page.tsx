@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getCategoryByHandle, listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
+import { CardFacetField, CARD_FACET_FIELDS, parseCsvParam } from "@lib/util/card-facets"
 import { StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -12,6 +13,10 @@ type Props = {
   searchParams: Promise<{
     sortBy?: SortOptions
     page?: string
+    q?: string
+    card_set?: string
+    rarity?: string
+    condition?: string
   }>
 }
 
@@ -47,12 +52,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const productCategory = await getCategoryByHandle(params.category)
 
-    const title = productCategory.name + " | Medusa Store"
+    const title = `${productCategory.name} | MOWY`
 
     const description = productCategory.description ?? `${title} category.`
 
     return {
-      title: `${title} | Medusa Store`,
+      title,
       description,
       alternates: {
         canonical: `${params.category.join("/")}`,
@@ -66,7 +71,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function CategoryPage(props: Props) {
   const searchParams = await props.searchParams
   const params = await props.params
-  const { sortBy, page } = searchParams
+  const { sortBy, page, q, card_set, rarity, condition } = searchParams
 
   const productCategory = await getCategoryByHandle(params.category)
 
@@ -74,11 +79,22 @@ export default async function CategoryPage(props: Props) {
     notFound()
   }
 
+  const rawFacets: Record<CardFacetField, string | undefined> = {
+    card_set,
+    rarity,
+    condition,
+  }
+  const facets = Object.fromEntries(
+    CARD_FACET_FIELDS.map((field) => [field, parseCsvParam(rawFacets[field])])
+  )
+
   return (
     <CategoryTemplate
       category={productCategory}
       sortBy={sortBy}
       page={page}
+      query={q}
+      facets={facets}
       countryCode={params.countryCode}
     />
   )

@@ -1,5 +1,4 @@
 import { Dialog, Transition } from "@headlessui/react"
-import { Button, clx } from "@medusajs/ui"
 import React, { Fragment, useMemo } from "react"
 
 import useToggleState from "@lib/hooks/use-toggle-state"
@@ -7,9 +6,10 @@ import ChevronDown from "@modules/common/icons/chevron-down"
 import X from "@modules/common/icons/x"
 
 import { getProductPrice } from "@lib/util/get-product-price"
-import OptionSelect from "./option-select"
-import { HttpTypes } from "@medusajs/types"
 import { isSimpleProduct } from "@lib/util/product"
+import { HttpTypes } from "@medusajs/types"
+import { Button } from "@/components/ui/button"
+import OptionSelect from "./option-select"
 
 type MobileActionsProps = {
   product: HttpTypes.StoreProduct
@@ -55,9 +55,9 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   return (
     <>
       <div
-        className={clx("lg:hidden inset-x-0 bottom-0 fixed z-50", {
-          "pointer-events-none": !show,
-        })}
+        className={`lg:hidden fixed inset-x-0 bottom-0 z-50 ${
+          !show ? "pointer-events-none" : ""
+        }`}
       >
         <Transition
           as={Fragment}
@@ -70,60 +70,58 @@ const MobileActions: React.FC<MobileActionsProps> = ({
           leaveTo="opacity-0"
         >
           <div
-            className="bg-white flex flex-col gap-y-3 justify-center items-center text-large-regular p-4 h-full w-full border-t border-gray-200"
+            className="flex h-full w-full flex-col items-center justify-center gap-y-3 border-t border-line bg-ink-2 p-4 text-base"
             data-testid="mobile-actions"
           >
-            <div className="flex items-center gap-x-2">
+            <div className="flex items-center gap-x-2 text-chrome">
               <span data-testid="mobile-title">{product.title}</span>
-              <span>—</span>
+              <span className="text-chrome-dim">—</span>
               {selectedPrice ? (
-                <div className="flex items-end gap-x-2 text-ui-fg-base">
+                <div className="flex items-end gap-x-2">
                   {selectedPrice.price_type === "sale" && (
-                    <p>
-                      <span className="line-through text-small-regular">
-                        {selectedPrice.original_price}
-                      </span>
-                    </p>
+                    <span className="text-sm text-chrome-dim line-through">
+                      {selectedPrice.original_price}
+                    </span>
                   )}
-                  <span
-                    className={clx({
-                      "text-ui-fg-interactive":
-                        selectedPrice.price_type === "sale",
-                    })}
-                  >
+                  <span className="font-mono text-cobalt-soft">
                     {selectedPrice.calculated_price}
                   </span>
                 </div>
               ) : (
-                <div></div>
+                <div />
               )}
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
-              {!isSimple && <Button
-                onClick={open}
-                variant="secondary"
-                className="w-full"
-                data-testid="mobile-actions-button"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span>
-                    {variant
-                      ? Object.values(options).join(" / ")
-                      : "Select Options"}
-                  </span>
-                  <ChevronDown />
-                </div>
-              </Button>}
+            <div
+              className={`grid w-full gap-x-4 ${
+                isSimple ? "grid-cols-1" : "grid-cols-2"
+              }`}
+            >
+              {!isSimple && (
+                <Button
+                  onClick={open}
+                  variant="outline"
+                  className="w-full border-line text-chrome"
+                  data-testid="mobile-actions-button"
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <span>
+                      {variant
+                        ? Object.values(options).join(" / ")
+                        : "Select Options"}
+                    </span>
+                    <ChevronDown />
+                  </div>
+                </Button>
+              )}
               <Button
                 onClick={handleAddToCart}
                 disabled={!inStock || !variant}
-                className="w-full"
-                isLoading={isAdding}
+                className="w-full bg-cobalt text-chrome hover:bg-cobalt/90"
                 data-testid="mobile-cart-button"
               >
-                {!variant
+                {isAdding
+                  ? "Adding…"
+                  : !variant
                   ? "Select variant"
                   : !inStock
                   ? "Out of stock"
@@ -144,11 +142,11 @@ const MobileActions: React.FC<MobileActionsProps> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-700 bg-opacity-75 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-ink/75 backdrop-blur-sm" />
           </Transition.Child>
 
-          <div className="fixed bottom-0 inset-x-0">
-            <div className="flex min-h-full h-full items-center justify-center text-center">
+          <div className="fixed inset-x-0 bottom-0">
+            <div className="flex h-full min-h-full items-center justify-center text-center">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -159,34 +157,31 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                 leaveTo="opacity-0"
               >
                 <Dialog.Panel
-                  className="w-full h-full transform overflow-hidden text-left flex flex-col gap-y-3"
+                  className="flex h-full w-full transform flex-col gap-y-3 overflow-hidden text-left"
                   data-testid="mobile-actions-modal"
                 >
-                  <div className="w-full flex justify-end pr-6">
+                  <div className="flex w-full justify-end pr-6">
                     <button
                       onClick={close}
-                      className="bg-white w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-ink-2 text-chrome"
                       data-testid="close-modal-button"
                     >
                       <X />
                     </button>
                   </div>
-                  <div className="bg-white px-6 py-12">
+                  <div className="bg-ink-2 px-6 py-12">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
-                        {(product.options || []).map((option) => {
-                          return (
-                            <div key={option.id}>
-                              <OptionSelect
-                                option={option}
-                                current={options[option.id]}
-                                updateOption={updateOptions}
-                                title={option.title ?? ""}
-                                disabled={optionsDisabled}
-                              />
-                            </div>
-                          )
-                        })}
+                        {(product.options || []).map((option) => (
+                          <OptionSelect
+                            key={option.id}
+                            option={option}
+                            current={options[option.id]}
+                            updateOption={updateOptions}
+                            title={option.title ?? ""}
+                            disabled={optionsDisabled}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>

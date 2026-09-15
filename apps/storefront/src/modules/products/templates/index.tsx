@@ -1,19 +1,18 @@
 import React, { Suspense } from "react"
+import { notFound } from "next/navigation"
 
+import { HttpTypes } from "@medusajs/types"
+import CardDetailsPanel from "@modules/products/components/card-details-panel"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
-import ProductOnboardingCta from "@modules/products/components/product-onboarding-cta"
-import ProductTabs from "@modules/products/components/product-tabs"
 import RelatedProducts from "@modules/products/components/related-products"
 import ProductInfo from "@modules/products/templates/product-info"
-import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
-import { notFound } from "next/navigation"
-import { HttpTypes } from "@medusajs/types"
+import { ProductWithCardDetail } from "types/card-detail"
 
 import ProductActionsWrapper from "./product-actions-wrapper"
 
 type ProductTemplateProps = {
-  product: HttpTypes.StoreProduct
+  product: ProductWithCardDetail
   region: HttpTypes.StoreRegion
   countryCode: string
   images: HttpTypes.StoreProductImage[]
@@ -32,36 +31,55 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
   return (
     <>
       <div
-        className="content-container  flex flex-col small:flex-row small:items-start py-6 relative"
+        className="content-container py-10 lg:py-14"
         data-testid="product-container"
       >
-        <div className="flex flex-col small:sticky small:top-48 small:py-0 small:max-w-[300px] w-full py-8 gap-y-6">
-          <ProductInfo product={product} />
-          <ProductTabs product={product} />
-        </div>
-        <div className="block w-full relative">
-          <ImageGallery images={images} />
-        </div>
-        <div className="flex flex-col small:sticky small:top-48 small:py-0 small:max-w-[300px] w-full py-8 gap-y-12">
-          <ProductOnboardingCta />
-          <Suspense
-            fallback={
-              <ProductActions
-                disabled={true}
-                product={product}
-                region={region}
-              />
-            }
-          >
-            <ProductActionsWrapper id={product.id} region={region} />
-          </Suspense>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+          <ImageGallery images={images} title={product.title} />
+
+          <div className="flex flex-col gap-8">
+            <ProductInfo product={product} />
+
+            {product.card_detail && (
+              <CardDetailsPanel cardDetail={product.card_detail} />
+            )}
+
+            <Suspense
+              fallback={
+                <ProductActions
+                  disabled={true}
+                  product={product}
+                  region={region}
+                />
+              }
+            >
+              <ProductActionsWrapper id={product.id} region={region} />
+            </Suspense>
+
+            <p className="border-t border-line pt-5 text-sm text-chrome-dim">
+              Hand-checked before it ships &middot; Tracked UK &amp;
+              international shipping
+            </p>
+          </div>
         </div>
       </div>
+
       <div
-        className="content-container my-16 small:my-32"
+        className="content-container my-16 lg:my-28"
         data-testid="related-products-container"
       >
-        <Suspense fallback={<SkeletonRelatedProducts />}>
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="aspect-[3/4] animate-pulse rounded-[14px] border border-line bg-panel"
+                />
+              ))}
+            </div>
+          }
+        >
           <RelatedProducts product={product} countryCode={countryCode} />
         </Suspense>
       </div>

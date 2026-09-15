@@ -6,7 +6,7 @@ import Image from "next/image"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { getProductPrice } from "@lib/util/get-product-price"
-import GradingPriceTag from "../grading-price-tag"
+import GradingPriceTag from "@modules/common/components/grading-price-tag"
 
 // Fallback thumb gradients — matches design-reference/mowy-homepage.html's
 // .t1–.t4 product-card thumbnail gradients, cycled per card.
@@ -62,14 +62,14 @@ function ProductCard({
       className="group overflow-hidden rounded-[14px] border border-line bg-panel transition-colors duration-200 hover:border-cobalt/35"
     >
       <LocalizedClientLink href={`/products/${product.handle}`}>
-        <div className="relative aspect-square overflow-hidden">
+        <div className="relative aspect-[3/4] overflow-hidden bg-panel">
           {product.thumbnail ? (
             <Image
               src={product.thumbnail}
               alt={product.title}
               fill
               sizes="(max-width: 768px) 45vw, 23vw"
-              className="object-cover"
+              className="object-contain"
             />
           ) : (
             <div
