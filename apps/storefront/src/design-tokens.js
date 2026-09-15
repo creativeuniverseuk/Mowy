@@ -28,6 +28,12 @@ const colors = {
   live: { hex: "#7fd68a", hsl: "128 51% 67%" },
   "low-stock": { hex: "#e0a83f", hsl: "39 72% 56%" },
   "out-of-stock": { hex: "#e2716f", hsl: "1 66% 66%" },
+
+  // Holo/foil gradient stops — decorative accent for card-foil moments
+  // (headline emphasis, sheen sweeps), not a general-purpose UI colour
+  "holo-a": { hex: "#ffffff", hsl: "0 0% 100%" },
+  "holo-b": { hex: "#b9c2d0", hsl: "215 20% 78%" },
+  "holo-c": { hex: "#3b6eff", hsl: "224 100% 62%" },
 }
 
 const fonts = {
