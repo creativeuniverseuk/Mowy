@@ -1,155 +1,134 @@
 import { listCategories } from "@lib/data/categories"
-import { listCollections } from "@lib/data/collections"
-import { Text, clx } from "@medusajs/ui"
+import { HttpTypes } from "@medusajs/types"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import MedusaCTA from "@modules/layout/components/medusa-cta"
 
+const SHOP_ORDER = [
+  "Pokémon TCG",
+  "3D-Printed Figures",
+  "Lorcana",
+  "Riftbound",
+  "Cyberpunk",
+  "Palworld",
+  "Cataclysm: Arcade",
+  "Mystery Pulls",
+]
+
+/**
+ * Receipt-style site footer — monospace, dashed divider, torn-edge top
+ * (matches the .foot-grid/.foot-bottom structure and dashed divider in
+ * design-reference/mowy-homepage.html; the perforated top edge is not in
+ * that mockup and is a from-scratch CSS mask/gradient addition).
+ */
 export default async function Footer() {
-  const { collections } = await listCollections({
-    fields: "*products",
-  })
-  const productCategories = await listCategories()
+  const allCategories = await listCategories()
+  const topLevel = allCategories.filter((c) => !c.parent_category)
+  const shopLinks = SHOP_ORDER.map((name) =>
+    topLevel.find((c) => c.name === name)
+  ).filter((c): c is HttpTypes.StoreProductCategory => Boolean(c))
 
   return (
-    <footer className="border-t border-ui-border-base w-full">
-      <div className="content-container flex flex-col w-full">
-        <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
-          <div>
-            <LocalizedClientLink
-              href="/"
-              className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
-            >
-              Medusa Store
-            </LocalizedClientLink>
-          </div>
-          <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
-            {productCategories && productCategories?.length > 0 && (
-              <div className="flex flex-col gap-y-2">
-                <span className="txt-small-plus txt-ui-fg-base">
-                  Categories
-                </span>
-                <ul
-                  className="grid grid-cols-1 gap-2"
-                  data-testid="footer-categories"
-                >
-                  {productCategories?.slice(0, 6).map((c) => {
-                    if (c.parent_category) {
-                      return
-                    }
+    <footer className="bg-ink">
+      <div
+        aria-hidden
+        className="h-2.5 w-full"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 10px 0, transparent 10px, #1a1a24 11px)",
+          backgroundSize: "20px 10px",
+          backgroundRepeat: "repeat-x",
+        }}
+      />
 
-                    const children =
-                      c.category_children?.map((child) => ({
-                        name: child.name,
-                        handle: child.handle,
-                        id: child.id,
-                      })) || null
-
-                    return (
-                      <li
-                        className="flex flex-col gap-2 text-ui-fg-subtle txt-small"
-                        key={c.id}
-                      >
-                        <LocalizedClientLink
-                          className={clx(
-                            "hover:text-ui-fg-base",
-                            children && "txt-small-plus"
-                          )}
-                          href={`/categories/${c.handle}`}
-                          data-testid="category-link"
-                        >
-                          {c.name}
-                        </LocalizedClientLink>
-                        {children && (
-                          <ul className="grid grid-cols-1 ml-3 gap-2">
-                            {children &&
-                              children.map((child) => (
-                                <li key={child.id}>
-                                  <LocalizedClientLink
-                                    className="hover:text-ui-fg-base"
-                                    href={`/categories/${child.handle}`}
-                                    data-testid="category-link"
-                                  >
-                                    {child.name}
-                                  </LocalizedClientLink>
-                                </li>
-                              ))}
-                          </ul>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )}
-            {collections && collections.length > 0 && (
-              <div className="flex flex-col gap-y-2">
-                <span className="txt-small-plus txt-ui-fg-base">
-                  Collections
+      <div className="bg-ink-2 pb-8 pt-14">
+        <div className="content-container">
+          <div className="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-10">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-h4 text-chrome">MOWY</span>
+                <span className="font-mono text-[11px] text-cobalt-soft">
+                  PLAY &middot; PROTECT &middot; COLLECT
                 </span>
-                <ul
-                  className={clx(
-                    "grid grid-cols-1 gap-2 text-ui-fg-subtle txt-small",
-                    {
-                      "grid-cols-2": (collections?.length || 0) > 3,
-                    }
-                  )}
-                >
-                  {collections?.slice(0, 6).map((c) => (
-                    <li key={c.id}>
-                      <LocalizedClientLink
-                        className="hover:text-ui-fg-base"
-                        href={`/collections/${c.handle}`}
-                      >
-                        {c.title}
-                      </LocalizedClientLink>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
-            <div className="flex flex-col gap-y-2">
-              <span className="txt-small-plus txt-ui-fg-base">Medusa</span>
-              <ul className="grid grid-cols-1 gap-y-2 text-ui-fg-subtle txt-small">
+              <p className="mt-3.5 max-w-[280px] text-sm leading-[1.6] text-chrome-dim">
+                Family-run trading card and collectibles shop, based at
+                Abingdon Street Market, Blackpool.
+              </p>
+            </div>
+
+            <div>
+              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+                Shop
+              </h5>
+              <ul className="flex flex-col gap-2.5">
+                {shopLinks.map((category) => (
+                  <li key={category.id}>
+                    <LocalizedClientLink
+                      href={`/categories/${category.handle}`}
+                      className="text-sm text-chrome-dim transition-colors hover:text-chrome"
+                    >
+                      {category.name}
+                    </LocalizedClientLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+                Support
+              </h5>
+              <ul className="flex flex-col gap-2.5">
+                <li>
+                  <LocalizedClientLink
+                    href="/account/orders"
+                    className="text-sm text-chrome-dim transition-colors hover:text-chrome"
+                  >
+                    Track my order
+                  </LocalizedClientLink>
+                </li>
                 <li>
                   <a
-                    href="https://github.com/medusajs"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
+                    href="mailto:Snorlaxandmowytcg@gmail.com"
+                    className="text-sm text-chrome-dim transition-colors hover:text-chrome"
                   >
-                    GitHub
+                    Contact us
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+                Visit / Contact
+              </h5>
+              <ul className="flex flex-col gap-2.5 text-sm text-chrome-dim">
+                <li>Abingdon Street Market</li>
+                <li>Edward St, Blackpool FY1 1DR</li>
+                <li>
+                  <a
+                    href="tel:+447427255704"
+                    className="transition-colors hover:text-chrome"
+                  >
+                    +44 7427 255704
                   </a>
                 </li>
                 <li>
                   <a
-                    href="https://docs.medusajs.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
+                    href="mailto:Snorlaxandmowytcg@gmail.com"
+                    className="transition-colors hover:text-chrome"
                   >
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/medusajs/nextjs-starter-medusa"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-ui-fg-base"
-                  >
-                    Source code
+                    Snorlaxandmowytcg@gmail.com
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-        </div>
-        <div className="flex w-full mb-16 justify-between text-ui-fg-muted">
-          <Text className="txt-compact-small">
-            © {new Date().getFullYear()} Medusa Store. All rights reserved.
-          </Text>
-          <MedusaCTA />
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-line pt-6 font-mono text-[11.5px] text-chrome-dim">
+            <span>&copy; {new Date().getFullYear()} MOWY. ALL RIGHTS RESERVED.</span>
+            <span>PLAY &middot; PROTECT &middot; COLLECT</span>
+          </div>
         </div>
       </div>
     </footer>

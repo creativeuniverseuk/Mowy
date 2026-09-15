@@ -1,8 +1,9 @@
 import { Metadata } from "next"
 
-import FeaturedProducts from "@modules/home/components/featured-products"
 import BinderHero from "@modules/home/components/binder-hero"
-import { listCollections } from "@lib/data/collections"
+import CategoryShowcase from "@modules/home/components/category-showcase"
+import NewsletterBand from "@modules/home/components/newsletter-band"
+import StoryBand from "@modules/home/components/story-band"
 import { getRegion } from "@lib/data/regions"
 
 export const metadata: Metadata = {
@@ -20,22 +21,16 @@ export default async function Home(props: {
 
   const region = await getRegion(countryCode)
 
-  const { collections } = await listCollections({
-    fields: "id, handle, title",
-  })
-
-  if (!collections || !region) {
+  if (!region) {
     return null
   }
 
   return (
     <>
       <BinderHero region={region} />
-      <div id="featured" className="py-12">
-        <ul className="flex flex-col gap-x-6">
-          <FeaturedProducts collections={collections} region={region} />
-        </ul>
-      </div>
+      <CategoryShowcase region={region} />
+      <StoryBand />
+      <NewsletterBand />
     </>
   )
 }

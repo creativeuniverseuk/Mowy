@@ -1,6 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 
 import { listProducts } from "@lib/data/products"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import BinderGrid from "./binder-grid"
 
 /**
@@ -62,14 +63,14 @@ export default async function BinderHero({
           </p>
 
           <div className="mb-9 flex flex-wrap gap-3.5">
-            <a
-              href="#featured"
+            <LocalizedClientLink
+              href="/store"
               className="inline-flex items-center gap-2 rounded-[9px] bg-chrome px-6 py-3.5 text-sm font-semibold text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(59,110,255,0.25)]"
             >
               Shop new drops
-            </a>
+            </LocalizedClientLink>
             <a
-              href="#featured"
+              href="#find-your-set"
               className="inline-flex items-center gap-2 rounded-[9px] border border-line px-6 py-3.5 text-sm font-semibold text-chrome transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:border-cobalt-soft"
             >
               Browse the binder
