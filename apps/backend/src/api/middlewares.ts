@@ -1,4 +1,5 @@
 import {
+  authenticate,
   defineMiddlewares,
   MedusaNextFunction,
   MedusaRequest,
@@ -117,6 +118,11 @@ export default defineMiddlewares({
       matcher: "/store/products*",
       methods: ["GET"],
       middlewares: [allowCardDetailFields],
+    },
+    {
+      matcher: "/store/mystery-pulls/orders/:order_id/result",
+      methods: ["GET"],
+      middlewares: [authenticate("customer", ["session", "bearer"])],
     },
   ],
 });
