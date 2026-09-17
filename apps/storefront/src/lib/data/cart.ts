@@ -387,15 +387,19 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
 }
 
 /**
- * Places an order for a cart. If no cart ID is provided, it will use the cart ID from the cookies.
- * @param cartId - optional - The ID of the cart to place an order for.
- * @returns The cart object if the order was successful, or null if not.
+ * Asks the Medusa backend to complete a cart. This re-checks payment state
+ * with the payment provider (e.g. SumUp) server-side before an order is
+ * created — the backend's response is the source of truth, never a redirect
+ * query param alone. Does not redirect; callers decide where to send the
+ * customer based on the result.
+ * @param cartId - optional - The ID of the cart to complete. Falls back to the cart ID cookie.
+ * @returns The cart-complete response: `{ type: "order", order }` on success, or `{ type: "cart", cart }` if payment was not confirmed.
  */
-export async function placeOrder(cartId?: string) {
+export async function completeCart(cartId?: string) {
   const id = cartId || (await getCartId())
 
   if (!id) {
-    throw new Error("No existing cart found when placing an order")
+    throw new Error("No existing cart found when completing cart")
   }
 
   const headers = {
@@ -412,13 +416,27 @@ export async function placeOrder(cartId?: string) {
     .catch(medusaError)
 
   if (cartRes?.type === "order") {
-    const countryCode =
-      cartRes.order.shipping_address?.country_code?.toLowerCase()
-
     const orderCacheTag = await getCacheTag("orders")
     revalidateTag(orderCacheTag)
 
-    removeCartId()
+    await removeCartId()
+  }
+
+  return cartRes
+}
+
+/**
+ * Places an order for a cart. If no cart ID is provided, it will use the cart ID from the cookies.
+ * @param cartId - optional - The ID of the cart to place an order for.
+ * @returns The cart object if the order was successful, or null if not.
+ */
+export async function placeOrder(cartId?: string) {
+  const cartRes = await completeCart(cartId)
+
+  if (cartRes?.type === "order") {
+    const countryCode =
+      cartRes.order.shipping_address?.country_code?.toLowerCase()
+
     redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
   }
 

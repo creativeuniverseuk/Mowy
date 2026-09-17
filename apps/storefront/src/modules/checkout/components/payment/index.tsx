@@ -37,6 +37,7 @@ const Payment = ({
   const pathname = usePathname()
 
   const isOpen = searchParams.get("step") === "payment"
+  const paymentErrorParam = searchParams.get("payment_error") === "1"
 
   const setPaymentMethod = async (method: string) => {
     setError(null)
@@ -134,6 +135,11 @@ const Payment = ({
       </div>
       <div>
         <div className={isOpen ? "block" : "hidden"}>
+          {paymentErrorParam && (
+            <div className="mb-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-small-regular text-rose-600">
+              Your payment wasn&apos;t completed. Please try again.
+            </div>
+          )}
           {!paidByGiftcard && availablePaymentMethods?.length && (
             <>
               <RadioGroup

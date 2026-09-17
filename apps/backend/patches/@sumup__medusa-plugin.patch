@@ -1,33 +1,50 @@
 # Why this patch exists:
-# Upstream bug in @sumup/medusa-plugin@0.1.0 — its toMajorUnitNumber() helper
-# is named as if it converts Medusa's minor-unit amounts (e.g. pence) to the
-# major units SumUp's API expects (e.g. pounds), but it never actually
-# divided by anything — it just coerced Medusa's BigNumber-shaped amount into
-# a plain JS number and returned it unchanged. SumUp's own SDK documents
-# `amount` as "expressed in major units", so every checkout and refund this
-# plugin created was submitted at 100x the intended charge (e.g. a £11.00
-# cart total was sent to SumUp as 1100, which SumUp records as £1,100.00).
-# Confirmed directly against SumUp's API: GET on a created checkout showed
-# "amount": 1100 for an intended £11.00 charge.
+# Upstream bug: `toMajorUnitNumber()` used to coerce Medusa's BigNumber-
+# shaped amount to a plain JS number and return it unchanged, regardless of
+# shape.
 #
-# Fix: toMajorUnitNumber() now divides by the currency's own decimal-digit
-# factor (via @medusajs/framework/utils's defaultCurrencies), not a blind
-# /100 — currencies like JPY/CLP have 0 decimal places and would be wrong
-# under a hardcoded divisor. Applied at all three call sites that funnel
-# through this same broken helper: checkout creation
-# (providers/sumup/utils.js, createCheckoutPayload), refunds
-# (providers/sumup/service.js, refundPayment), and the cart-total-changed
-# reconciliation path (providers/sumup/service.js, updatePayment) — the last
-# of these was missed in the first pass of this patch and added afterward;
-# it only looked correct before because GBP's 2-decimal default happened to
-# match the unpatched fallback.
+# This has gone through two rounds of investigation (see project memory /
+# session notes for the full traces):
 #
-# No upstream issue filed yet as of writing — worth reporting to the
-# plugin's GitHub repo (github.com/sumup/medusa-plugin-sumup) when there's
-# time (not urgent, but this is a payment-correctness bug, not cosmetic).
-# Safe to delete this patch (and its entry in pnpm-workspace.yaml /
-# pnpm-lock.yaml) once upstream ships a fix and the dependency is upgraded
-# past it.
+# Round 1: confirmed against SumUp's API that the unpatched code sent an
+# intended £11.00 charge as `amount: 1100` (i.e. £1,100.00 by SumUp's own
+# accounting) — a 100x overcharge. That fix divided by the currency's
+# decimal-digit factor (via @medusajs/framework/utils's `defaultCurrencies`)
+# at all three call sites that funnel through this helper: checkout creation
+# (createCheckoutPayload), refunds (refundPayment), and the cart-total-
+# changed reconciliation path (updatePayment).
+#
+# Round 2: that division introduced the *opposite* bug — investigated
+# directly against a real Medusa v2.21 cart -> checkout -> SumUp flow (not a
+# synthetic test): a real £645.00 cart was submitted to SumUp as £6.45, and
+# a live refund attempt confirmed the same problem on that path too. Traced
+# to @medusajs/payment's PaymentModuleService: `createPaymentSession` /
+# `updatePaymentSession` pass a plain JS `number` already in *major* units
+# (e.g. `645`, not `64500`), and `refundPaymentFromProvider_` passes
+# `refund.raw_amount`, a BigNumber-raw object (`{ value: "645", precision:
+# 20 }`). Per @medusajs/utils's own `BigNumber` class, `.raw.value`,
+# `.numeric`, `.bigNumber.toNumber()`, and a plain number all represent the
+# *same* major-unit decimal amount in this Medusa version — `precision` is
+# significant-digit precision for arbitrary-precision math, not a scale
+# factor. No shape Medusa v2.21 hands this provider, on any of the three
+# call sites, ever represents minor units (pence/cents), so the Round 1 fix
+# was wrong for everything we could reach — hence the 100x UNDERcharge.
+#
+# Fix: extract the numeric value from whatever shape arrives and stop
+# scaling it — only round to the currency's decimal digits for display/API
+# formatting. As a backstop against a *future* regression (e.g. some other
+# call path, or a future Medusa version, handing this minor units again —
+# which is exactly how the Round 1 bug manifested), throw if the resulting
+# amount is implausibly large for a retail transaction (over 50,000 in the
+# currency's major units) rather than silently submitting it — that
+# magnitude is the signature a minor-unit leak leaves once mistakenly
+# treated as major units.
+#
+# Not yet reported upstream. Safe to delete this patch (and its entry in
+# pnpm-workspace.yaml / pnpm-lock.yaml) once upstream ships a fix and the
+# dependency is upgraded past it — but re-verify against a real cart/refund
+# flow first, the same way this fix was, rather than trusting either
+# direction on inspection alone.
 diff --git a/.medusa/server/src/providers/sumup/service.js b/.medusa/server/src/providers/sumup/service.js
 index 9a0bcd193987d9d31768d1087cd65cf9ebeaa4cc..60f978902fda08f73f829595b6128ffd229b0af7 100644
 --- a/.medusa/server/src/providers/sumup/service.js
@@ -64,19 +81,47 @@ index f2a06de1ecbe6fe30a86ed7a40525c7182c05172..6004e3be118e8db0ae6ed34c9f7c35a0
  export declare function resolveCheckoutMode(options: SumUpProviderOptions, data?: Record<string, unknown>): SumUpCheckoutMode;
  export declare function createCheckoutReference(data?: Record<string, unknown>, idempotencyKey?: string): string;
 diff --git a/.medusa/server/src/providers/sumup/utils.js b/.medusa/server/src/providers/sumup/utils.js
-index 86e469d8383cb938f761ceca101f5a33634c238c..4374edaeec10af3aa6ff1f4e7c6aafe9d0480812 100644
+index 86e469d8383cb938f761ceca101f5a33634c238c..a20ff0e0c04bdfb2efcc3bce1ecccd4a62192f03 100644
 --- a/.medusa/server/src/providers/sumup/utils.js
 +++ b/.medusa/server/src/providers/sumup/utils.js
-@@ -31,30 +31,45 @@ const SUPPORTED_CURRENCIES = new Set([
+@@ -31,30 +31,78 @@ const SUPPORTED_CURRENCIES = new Set([
      "SEK",
      "USD",
  ]);
 -function toMajorUnitNumber(amount) {
-+// Upstream bug: this used to return the coerced minor-unit number
-+// unchanged, despite its name — SumUp's API documents `amount` as
-+// "expressed in major units", so every checkout/refund was submitted at
-+// 100x the intended charge. Now divides by the currency's own decimal-digit
-+// factor (not a blind /100 — currencies like JPY/CLP have 0 decimal places).
++// Upstream bug #1 (original): this used to return the coerced amount
++// unchanged no matter its shape. That was wrong for nothing we could find —
++// investigated directly against a real Medusa v2.21 cart -> checkout ->
++// SumUp flow (not a synthetic/unit test): `initiatePayment` and
++// `updatePayment` both hand this function a plain JS `number` already in
++// *major* units (e.g. `645` for a £645.00 cart — see
++// @medusajs/payment's PaymentModuleService#createPaymentSession /
++// #updatePaymentSession, which pass `amount: input.amount` straight through
++// from the payment collection's already-major-unit `amount` field), and
++// `refundPayment` hands it `refund.raw_amount`, a BigNumber-raw object
++// (`{ value: "645", precision: 20 }` — confirmed against a live refund
++// attempt). `precision` there is significant-digit precision for
++// arbitrary-precision decimal math (bignumber.js `toPrecision`), not a scale
++// factor — per @medusajs/utils's own `BigNumber` class, `.raw.value`,
++// `.numeric`, and a plain number all represent the *same* major-unit
++// decimal amount. No shape Medusa v2 hands this provider ever represents
++// minor units (pence/cents); the previous patch's divide-by-decimal-digits
++// step was therefore wrong for every reachable call site, producing a 100x
++// UNDERcharge (a real £645.00 order was submitted to SumUp as £6.45).
++//
++// Upstream bug #2 (this file's own prior "fix"): dividing by the currency's
++// decimal-digit factor, on the mistaken assumption above.
++//
++// Fix: extract the numeric value from whatever shape arrives — never scale
++// it — then round to the currency's decimal digits for clean formatting
++// only. As a backstop against a *future* regression (e.g. if some other
++// call path, or a future Medusa version, ever does hand this minor units
++// again — which is exactly how upstream bug #1 manifested), refuse to
++// proceed if the resulting amount is implausibly large for a retail
++// transaction: that's the signature a minor-unit leak leaves once
++// mistakenly treated as major units. Fail loudly here rather than silently
++// mischarge either direction again.
++const MAX_PLAUSIBLE_MAJOR_UNIT_AMOUNT = 50000;
 +function toMajorUnitNumber(amount, currencyCode) {
 +    let value;
      if (typeof amount === "number") {
@@ -128,15 +173,20 @@ index 86e469d8383cb938f761ceca101f5a33634c238c..4374edaeec10af3aa6ff1f4e7c6aafe9
 +            value = Number(amount);
 +        }
 +    }
++    if (!Number.isFinite(value)) {
++        throw new Error(`SumUp payment amount could not be parsed as a number (got ${JSON.stringify(amount)}).`);
++    }
++    if (Math.abs(value) > MAX_PLAUSIBLE_MAJOR_UNIT_AMOUNT) {
++        throw new Error(`SumUp payment amount ${value}${currencyCode ? ` ${currencyCode.toUpperCase()}` : ""} is implausibly large for a retail transaction (over ${MAX_PLAUSIBLE_MAJOR_UNIT_AMOUNT}) — refusing to submit it to SumUp. This usually means the amount arrived in minor units (pence/cents) rather than Medusa's major-unit decimal representation; check what changed at the call site before raising this limit.`);
++    }
 +    const decimalDigits = currencyCode
 +        ? utils_1.defaultCurrencies[currencyCode.toUpperCase()]?.decimal_digits ?? 2
 +        : 2;
-+    const divisor = 10 ** decimalDigits;
-+    return Number((value / divisor).toFixed(decimalDigits));
++    return Number(value.toFixed(decimalDigits));
  }
  function normalizeCurrency(currencyCode) {
      const currency = currencyCode.toUpperCase();
-@@ -88,7 +103,7 @@ function createCheckoutPayload({ amount, currencyCode, data, options, }) {
+@@ -88,7 +136,7 @@ function createCheckoutPayload({ amount, currencyCode, data, options, }) {
          "Medusa order payment";
      return {
          checkout_reference: createCheckoutReference(data, data?.idempotency_key),

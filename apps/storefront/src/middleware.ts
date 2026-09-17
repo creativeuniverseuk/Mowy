@@ -162,6 +162,10 @@ export const config = {
   matcher: [
     // design-tokens is a dev-only reference page outside the [countryCode]
     // storefront tree — it doesn't need region resolution against Medusa.
-    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens).*)",
+    // checkout/sumup/return is a fixed path outside [countryCode] too: it's
+    // the backend SumUp provider's configured `redirectUrl`
+    // (apps/backend/medusa-config.ts), which SumUp itself redirects to
+    // verbatim — it must not get a country-code prefix inserted in front of it.
+    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens|checkout/sumup/return).*)",
   ],
 }

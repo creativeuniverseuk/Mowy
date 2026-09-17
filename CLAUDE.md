@@ -110,18 +110,39 @@ or UUID in a public URL.
   upload as `raw` instead of `image`. Not yet reported upstream. Safe to drop
   (and remove its entry from `pnpm-workspace.yaml`) once a fixed version ships.
 - `apps/backend/patches/@sumup__medusa-plugin.patch` — pnpm patch fixing a
-  payment-correctness bug in `@sumup/medusa-plugin@0.1.0`: its
-  `toMajorUnitNumber()` helper was named as if it converted Medusa's
-  minor-unit amounts (pence) to the major units SumUp's API expects (pounds),
-  but never actually divided — every checkout and refund was submitted at
-  100x the intended charge (confirmed directly against SumUp's API: an
-  intended £11.00 charge was sent as `amount: 1100`, i.e. £1,100.00 by
-  SumUp's own accounting). Fixed to divide by the currency's actual
-  decimal-digit factor (via `@medusajs/framework/utils`'s
-  `defaultCurrencies`), not a hardcoded `/100` — zero-decimal currencies
-  (JPY, CLP) would be wrong under that. Not yet reported upstream. Safe to
-  drop (and remove its entry from `pnpm-workspace.yaml`) once a fixed version
-  ships.
+  payment-correctness bug in `@sumup/medusa-plugin@0.1.0`'s
+  `toMajorUnitNumber()` helper, in `providers/sumup/utils.js`. This has been
+  wrong in both directions across two rounds of fixes:
+  - **Round 1**: the original code coerced Medusa's BigNumber-shaped amount
+    to a plain number and returned it unchanged. Confirmed against SumUp's
+    API that this sent an intended £11.00 charge as `amount: 1100` (a 100x
+    *overcharge*). Fixed by dividing by the currency's decimal-digit factor.
+  - **Round 2**: that division was itself wrong. Verified directly against a
+    real Medusa v2.21 cart → checkout → SumUp flow (not a synthetic test): a
+    real £645.00 cart was submitted to SumUp as £6.45 (a 100x
+    *undercharge*), and a live refund attempt hit the same bug on that call
+    site too. Root cause: `initiatePayment`/`updatePayment` receive a plain
+    JS `number` already in **major units** (`645`, not `64500`) — see
+    `@medusajs/payment`'s `PaymentModuleService#createPaymentSession` /
+    `#updatePaymentSession`, which pass the payment collection's amount
+    straight through — and `refundPayment` receives `refund.raw_amount`, a
+    BigNumber-raw object (`{ value: "645", precision: 20 }`, where
+    `precision` is significant-digit precision for arbitrary-precision math,
+    not a scale factor — see `@medusajs/utils`'s `BigNumber` class). Both
+    shapes represent the *same* major-unit decimal amount in this Medusa
+    version; neither ever represents minor units (pence/cents). Fixed by
+    extracting the numeric value from whichever shape arrives and no longer
+    scaling it at all, with a guard that throws if the resulting amount is
+    implausibly large for a retail transaction (over 50,000 in the
+    currency's major units) — a backstop in case some future call path (or
+    Medusa version) ever does hand this minor units again, which is exactly
+    how Round 1's bug happened.
+
+  Not yet reported upstream. Safe to drop (and remove its entry from
+  `pnpm-workspace.yaml`) once a fixed version ships — but re-verify against
+  a real cart → checkout → SumUp flow and a real refund first, the same way
+  this fix was, rather than trusting the diff on inspection alone; this bug
+  has now fooled a from-scratch reading of the code twice.
 
 ## Status
 

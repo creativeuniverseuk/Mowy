@@ -1,6 +1,6 @@
 "use client"
 
-import { isManual, isStripeLike } from "@lib/constants"
+import { isManual, isStripeLike, isSumUp } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
@@ -32,6 +32,14 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         <StripePaymentButton
           notReady={notReady}
           cart={cart}
+          data-testid={dataTestId}
+        />
+      )
+    case isSumUp(paymentSession?.provider_id):
+      return (
+        <SumUpPaymentButton
+          cart={cart}
+          notReady={notReady}
           data-testid={dataTestId}
         />
       )
@@ -146,6 +154,64 @@ const StripePaymentButton = ({
       <ErrorMessage
         error={errorMessage}
         data-testid="stripe-payment-error-message"
+      />
+    </>
+  )
+}
+
+// SumUp Hosted Checkout: the payment session's `data.hosted_checkout_url`
+// (set by the backend when the session was initiated) is where the
+// customer enters card details. We redirect there instead of calling
+// placeOrder() directly — the order is only completed once SumUp redirects
+// back to /checkout/sumup/return and the backend re-confirms payment.
+const SumUpPaymentButton = ({
+  cart,
+  notReady,
+  "data-testid": dataTestId,
+}: {
+  cart: HttpTypes.StoreCart
+  notReady: boolean
+  "data-testid"?: string
+}) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const session = cart.payment_collection?.payment_sessions?.find(
+    (s) => s.status === "pending"
+  )
+
+  const hostedCheckoutUrl = (
+    session?.data as Record<string, unknown> | undefined
+  )?.hosted_checkout_url as string | undefined
+
+  const handlePayment = () => {
+    setErrorMessage(null)
+
+    if (!hostedCheckoutUrl) {
+      setErrorMessage(
+        "Couldn't start the SumUp checkout. Please go back to the payment step and try again."
+      )
+      return
+    }
+
+    setSubmitting(true)
+    window.location.href = hostedCheckoutUrl
+  }
+
+  return (
+    <>
+      <Button
+        disabled={notReady}
+        onClick={handlePayment}
+        size="large"
+        isLoading={submitting}
+        data-testid={dataTestId}
+      >
+        Continue to SumUp
+      </Button>
+      <ErrorMessage
+        error={errorMessage}
+        data-testid="sumup-payment-error-message"
       />
     </>
   )
