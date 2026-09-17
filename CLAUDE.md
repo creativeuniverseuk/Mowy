@@ -100,6 +100,26 @@ or UUID in a public URL.
   `apps/storefront` — re-implement to match, using the real stack's components and
   conventions
 
+## Mystery Pull module
+
+`apps/backend/src/modules/mystery_pull` (`pull_pool`, `pull_outcome`), linked to
+Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
+`product`) and `src/links/pull-outcome-product.ts` (`pull_outcome` <->
+`product_variant`).
+
+- Deleting a `pull_pool` or `pull_outcome` record (e.g. via
+  `MysteryPullModuleService#deletePullPools` / `#deletePullOutcomes`) does
+  **not** cascade-delete its product/variant link row. The module service's
+  delete methods and the Link module are independent — nothing wires them
+  together automatically. Call `link.dismiss()` for both sides explicitly
+  before (or after) deleting the record, or the link row survives: soft-deleted
+  (`deleted_at` set, same convention as everywhere else in Medusa) so it's
+  invisible to `query.graph` and every normal read, but still present in the
+  link table. See `apps/backend/src/scripts/verify-mystery-pull-links.ts` for
+  the working pattern. Relevant for any future pool-deletion UI in the admin
+  widget (Prompt 5B.6) — that flow needs to dismiss links itself, not just
+  delete the pool/outcome record.
+
 ## Known upstream issues
 
 - `apps/backend/patches/@tsc_tech__medusa-plugin-cloudinary.patch` — pnpm patch

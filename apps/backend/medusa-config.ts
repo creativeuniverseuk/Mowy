@@ -28,6 +28,9 @@ module.exports = defineConfig({
       resolve: "./src/modules/card_detail",
     },
     {
+      resolve: "./src/modules/mystery_pull",
+    },
+    {
       resolve: "@medusajs/medusa/file",
       options: {
         providers: [
