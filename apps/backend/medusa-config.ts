@@ -2,6 +2,17 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
+// Jest sets NODE_ENV=test by default. Integration tests (see
+// integration-tests/) boot a real, isolated app instance from this same
+// config file against a throwaway database — but there's no Meilisearch
+// instance for them to reach, and @medusajs/test-utils's app-boot sequence
+// doesn't tolerate that the way `medusa develop`'s does (a failed search
+// index migration there is only ever logged, never fatal). Registering the
+// search module is what makes the test runner attempt that migration at
+// all, so it's skipped entirely under test — this file's actual search
+// config below is untouched for dev/production.
+const isTestEnv = process.env.NODE_ENV === 'test'
+
 module.exports = defineConfig({
   plugins: [
     {
@@ -67,23 +78,28 @@ module.exports = defineConfig({
         ],
       },
     },
-    {
-      resolve: "@medusajs/medusa/search",
-      options: {
-        providers: [
+    ...(isTestEnv
+      ? []
+      : [
           {
-            resolve: "@rokmohar/medusa-plugin-meilisearch/providers/meilisearch",
-            id: "meilisearch",
+            resolve: "@medusajs/medusa/search",
             options: {
-              config: {
-                host: process.env.MEILISEARCH_HOST!,
-                apiKey: process.env.MEILISEARCH_API_KEY,
-              },
+              providers: [
+                {
+                  resolve:
+                    "@rokmohar/medusa-plugin-meilisearch/providers/meilisearch",
+                  id: "meilisearch",
+                  options: {
+                    config: {
+                      host: process.env.MEILISEARCH_HOST!,
+                      apiKey: process.env.MEILISEARCH_API_KEY,
+                    },
+                  },
+                },
+              ],
             },
           },
-        ],
-      },
-    },
+        ]),
     {
       resolve: "@medusajs/medusa/payment",
       options: {

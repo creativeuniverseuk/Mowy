@@ -5,6 +5,7 @@ allowBuilds:
   msgpackr-extract: true
   protobufjs: true
 patchedDependencies:
+  '@medusajs/test-utils@2.21.0': patches/@medusajs__test-utils@2.21.0.patch
   '@sumup/medusa-plugin': patches/@sumup__medusa-plugin.patch
   '@tsc_tech/medusa-plugin-cloudinary': patches/@tsc_tech__medusa-plugin-cloudinary.patch
 # @tsc_tech/medusa-plugin-cloudinary's peerDependencies pin @mikro-orm/* to

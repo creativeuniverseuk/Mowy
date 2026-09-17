@@ -1,0 +1,64 @@
+diff --git a/dist/database.js b/dist/database.js
+index 88cd477b528f3f26292e5bd758f24683b8a3eb0d..a69f33386fe26961b62ee4b30c10b3def8681fe7 100644
+--- a/dist/database.js
++++ b/dist/database.js
+@@ -13,11 +13,24 @@ const DB_HOST = process.env.DB_HOST ?? "localhost";
+ const DB_USERNAME = process.env.DB_USERNAME ?? "";
+ const DB_PASSWORD = process.env.DB_PASSWORD ?? "";
+ const DB_PORT = process.env.DB_PORT ?? "5432";
++// Upstream bug: this package assumes a local, unencrypted Postgres (the
++// usual CI/Docker setup) and never sets `ssl` anywhere, whether via
++// DB_HOST/DB_USERNAME/DB_PASSWORD/DB_PORT (used for the raw `pg.Client`
++// createDatabase/dropDatabase admin connection) or via the connection
++// string this function returns (used for MikroORM's schema/migration
++// connection against the newly created test DB). Managed Postgres
++// providers that require TLS (Neon, RDS with force-ssl, etc.) reject the
++// connection outright ("connection is insecure (try using `sslmode=require`)")
++// before a single test can run. `configLoaderOverride` in ./medusa-test-runner-utils/config.js
++// already works around this for the *main app's* DB connection with the
++// same `host.includes("localhost") ? {} : { ssl: {...} }` check — this
++// mirrors that for the two connections this file owns.
+ const databaseCredentials = {
+     user: DB_USERNAME,
+     password: DB_PASSWORD,
+     host: DB_HOST,
+     port: parseInt(DB_PORT),
++    ...(DB_HOST === "localhost" ? {} : { ssl: { rejectUnauthorized: false } }),
+ };
+ function getDatabaseURL(dbName) {
+     const DB_HOST = process.env.DB_HOST ?? "localhost";
+@@ -25,7 +38,8 @@ function getDatabaseURL(dbName) {
+     const DB_PASSWORD = process.env.DB_PASSWORD ?? "";
+     const DB_PORT = process.env.DB_PORT ?? "5432";
+     const DB_NAME = dbName ?? process.env.DB_TEMP_NAME;
+-    return `postgres://${encodeURIComponent(DB_USERNAME)}${DB_PASSWORD ? `:${encodeURIComponent(DB_PASSWORD)}` : ""}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
++    const sslQuery = DB_HOST === "localhost" ? "" : "?sslmode=require";
++    return `postgres://${encodeURIComponent(DB_USERNAME)}${DB_PASSWORD ? `:${encodeURIComponent(DB_PASSWORD)}` : ""}@${DB_HOST}:${DB_PORT}/${DB_NAME}${sslQuery}`;
+ }
+ function getMikroOrmConfig({ mikroOrmEntities, pathToMigrations, clientUrl, schema, }) {
+     const DB_URL = clientUrl ?? getDatabaseURL();
+diff --git a/dist/medusa-test-runner-utils/postgres-template.js b/dist/medusa-test-runner-utils/postgres-template.js
+index fa403ef1e8e3ca55591883ce6e52de58931f3ef8..4c196774e492f11d50cf3c65cc8cf7d4335196b2 100644
+--- a/dist/medusa-test-runner-utils/postgres-template.js
++++ b/dist/medusa-test-runner-utils/postgres-template.js
+@@ -12,6 +12,12 @@ const DB_USERNAME = process.env.DB_USERNAME ?? "postgres";
+ const DB_PASSWORD = process.env.DB_PASSWORD ?? "";
+ const DB_PORT = process.env.DB_PORT ?? "5432";
+ const DB_WAITINGROOM_DATABASE = process.env.DB_WAITINGROOM_DATABASE ?? "postgres";
++// Same non-localhost-needs-TLS gap as ../database.js (see the comment
++// there) — this file builds its own separate raw `pg.Client` for the
++// "waitingroom" connection used by template create/restore/drop, with no
++// awareness of the `credentials` object database.js assembles, so it needs
++// the same fix independently.
++const DB_SSL = DB_HOST === "localhost" ? undefined : { rejectUnauthorized: false };
+ function quoteIdentifier(identifier) {
+     if (!identifier) {
+         throw new Error("Database identifier cannot be empty");
+@@ -34,6 +40,7 @@ async function getWaitingroomClient() {
+                 password: DB_PASSWORD || undefined,
+                 port: parseInt(DB_PORT),
+                 database: DB_WAITINGROOM_DATABASE,
++                ssl: DB_SSL,
+             });
+             try {
+                 await client.connect();
