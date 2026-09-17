@@ -58,6 +58,8 @@ export const isSumUp = (providerId?: string) => {
   return providerId?.startsWith("pp_sumup_")
 }
 
+export const MYSTERY_PULLS_CATEGORY_HANDLE = "mystery-pulls"
+
 // Add currencies that don't need to be divided by 100
 export const noDivisionCurrencies = [
   "krw",

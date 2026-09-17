@@ -99,6 +99,28 @@ async function allowCardDetailFields(
   next();
 }
 
+// Same gap as card_detail/categories above, for the product <-> pull_pool
+// link (see src/links/product-pull-pool.ts) — needed so the storefront's
+// Mystery Pulls category page can request `fields=+pull_pool.*` and get
+// each product's pack art / theme key / active state back instead of
+// having them silently stripped.
+async function allowPullPoolFields(
+  req: MedusaRequest,
+  _res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  req.allowed ??= [];
+  req.allowed.push(
+    "pull_pool",
+    "pull_pool.id",
+    "pull_pool.theme_key",
+    "pull_pool.pack_art_url",
+    "pull_pool.is_active"
+  );
+
+  next();
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -117,7 +139,7 @@ export default defineMiddlewares({
     {
       matcher: "/store/products*",
       methods: ["GET"],
-      middlewares: [allowCardDetailFields],
+      middlewares: [allowCardDetailFields, allowPullPoolFields],
     },
     {
       matcher: "/store/mystery-pulls/orders/:order_id/result",

@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation"
 
 import { searchProducts } from "@lib/data/search"
+import { listMysteryPullProducts } from "@lib/data/mystery-pulls"
+import { MYSTERY_PULLS_CATEGORY_HANDLE } from "@lib/constants"
 import { CardFacets } from "@lib/util/card-facets"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CategoryFilters from "@modules/categories/components/category-filters"
 import CategoryPagination from "@modules/categories/components/category-pagination"
 import ProductGrid from "@modules/home/components/product-grid"
+import MysteryPullGrid from "@modules/mystery-pulls/components/mystery-pull-grid"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
 const LIMIT = 12
@@ -41,15 +44,26 @@ export default async function CategoryTemplate({
   }
   getParents(category)
 
-  const { products, count, facetDistribution } = await searchProducts({
-    countryCode,
-    categoryId: category.id,
-    query: q,
-    facets,
-    sortBy: sort,
-    page: pageNumber,
-    limit: LIMIT,
-  })
+  const isMysteryPulls = category.handle === MYSTERY_PULLS_CATEGORY_HANDLE
+
+  const mysteryPullListings = isMysteryPulls
+    ? await listMysteryPullProducts({
+        categoryId: category.id,
+        countryCode,
+      })
+    : []
+
+  const { products, count, facetDistribution } = isMysteryPulls
+    ? { products: [], count: 0, facetDistribution: {} }
+    : await searchProducts({
+        countryCode,
+        categoryId: category.id,
+        query: q,
+        facets,
+        sortBy: sort,
+        page: pageNumber,
+        limit: LIMIT,
+      })
 
   const totalPages = Math.ceil(count / LIMIT)
 
@@ -98,30 +112,44 @@ export default async function CategoryTemplate({
         </div>
       )}
 
-      <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
-        <aside className="w-full shrink-0 lg:w-[240px]">
-          <CategoryFilters facetDistribution={facetDistribution} />
-        </aside>
-
+      {isMysteryPulls ? (
         <div className="w-full">
           <p className="mb-4 font-mono text-xs text-chrome-dim">
-            {count} {count === 1 ? "card" : "cards"}
+            {mysteryPullListings.length}{" "}
+            {mysteryPullListings.length === 1 ? "pack" : "packs"}
           </p>
 
-          <ProductGrid
-            products={products}
-            emptyLabel={
-              q || Object.values(facets ?? {}).some((v) => v?.length)
-                ? "No cards match those filters — try clearing a few."
-                : "No cards sleeved here yet — check back soon."
-            }
+          <MysteryPullGrid
+            listings={mysteryPullListings}
+            emptyLabel="No mystery pulls live right now — check back soon."
           />
-
-          {totalPages > 1 && (
-            <CategoryPagination page={pageNumber} totalPages={totalPages} />
-          )}
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+          <aside className="w-full shrink-0 lg:w-[240px]">
+            <CategoryFilters facetDistribution={facetDistribution} />
+          </aside>
+
+          <div className="w-full">
+            <p className="mb-4 font-mono text-xs text-chrome-dim">
+              {count} {count === 1 ? "card" : "cards"}
+            </p>
+
+            <ProductGrid
+              products={products}
+              emptyLabel={
+                q || Object.values(facets ?? {}).some((v) => v?.length)
+                  ? "No cards match those filters — try clearing a few."
+                  : "No cards sleeved here yet — check back soon."
+              }
+            />
+
+            {totalPages > 1 && (
+              <CategoryPagination page={pageNumber} totalPages={totalPages} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
