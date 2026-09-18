@@ -1,8 +1,10 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
+import { getProductPullPool } from "@lib/data/mystery-pulls"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
+import MysteryPullPage from "@modules/mystery-pulls/templates/mystery-pull-page"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
@@ -118,6 +120,21 @@ export default async function ProductPage(props: Props) {
 
   if (!pricedProduct) {
     notFound()
+  }
+
+  // A product linked to a pull_pool is a mystery-pull pack, not a regular
+  // card — render the dedicated pack/odds/buy experience instead of the
+  // standard product template. See CLAUDE.md's Mystery Pull module section.
+  const pool = await getProductPullPool(pricedProduct.id)
+
+  if (pool) {
+    return (
+      <MysteryPullPage
+        product={pricedProduct}
+        pool={pool}
+        countryCode={params.countryCode}
+      />
+    )
   }
 
   return (

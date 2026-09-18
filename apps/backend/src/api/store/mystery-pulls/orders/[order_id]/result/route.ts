@@ -1,29 +1,36 @@
 import {
-  AuthenticatedMedusaRequest,
+  MedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils";
+import { fetchLineItemMetadata } from "../../../../../../workflows/mystery-pull/line-item-metadata";
 
 /**
- * Requires customer auth (see the `authenticate` middleware wired onto this
- * route's matcher in src/api/middlewares.ts). The order is looked up scoped
- * to req.auth_context.actor_id rather than by id alone — unlike core's
- * GET /store/orders/:id, which is intentionally unauthenticated and treats
- * the order id itself as the access-control secret (see that route's own
- * doc comment) — because this endpoint is specifically for revealing a
- * customer's own pull result, not general order lookup.
+ * Deliberately unauthenticated — this used to require customer auth
+ * (`authenticate("customer", ...)`) and scope the lookup to
+ * req.auth_context.actor_id, but that made the reveal permanently
+ * unreachable for a guest checkout (no session ever exists to authenticate
+ * with), which is a normal, supported way to buy a mystery pull in this
+ * app. Switched to matching core Medusa's own precedent for exactly this
+ * situation: GET /store/orders/:id (see
+ * @medusajs/medusa/api/store/orders/[id]/route.ts) is intentionally
+ * unauthenticated too, with its own doc comment explaining why — the order
+ * id is a ULID that requires brute-forcing to guess, so the id itself is
+ * the access-control mechanism, not a session. Same reasoning applies
+ * here identically: this route is reached only via a link containing the
+ * real order id (the SumUp return flow, or the customer's own order
+ * history), so requiring a *second* secret (a valid session) on top of
+ * that doesn't add real security — it only breaks the guest-checkout case.
  *
- * Returns 404 (not 403) whether the order doesn't exist, doesn't belong to
- * this customer, has no mystery-pull line item, or assignment simply
- * hasn't run yet — so a non-owner probing order ids can't distinguish
- * "not yours" from "doesn't exist".
+ * Returns 404 whether the order doesn't exist, has no mystery-pull line
+ * item, or assignment simply hasn't run yet — so a caller probing order
+ * ids can't distinguish "no such order" from "not ready yet".
  */
 export async function GET(
-  req: AuthenticatedMedusaRequest,
+  req: MedusaRequest,
   res: MedusaResponse
 ) {
   const { order_id } = req.params;
-  const customerId = req.auth_context.actor_id;
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
 
   const notFound = () =>
@@ -34,18 +41,12 @@ export async function GET(
 
   const { data: orders } = await query.graph({
     entity: "order",
-    fields: [
-      "id",
-      "customer_id",
-      "items.id",
-      "items.metadata",
-      "items.product.pull_pool.id",
-    ],
+    fields: ["id", "items.id", "items.product.pull_pool.id"],
     filters: { id: order_id } as any,
   });
   const order = orders[0] as any;
 
-  if (!order || order.customer_id !== customerId) {
+  if (!order) {
     throw notFound();
   }
 
@@ -53,17 +54,22 @@ export async function GET(
     (item: any) => item.product?.pull_pool?.id
   );
 
-  if (!pullItem || !pullItem.metadata?.won_product_id) {
+  if (!pullItem) {
     throw notFound();
   }
 
-  const { won_product_id, won_variant_id, rarity_tier, rarity_color } =
-    pullItem.metadata as {
-      won_product_id: string;
-      won_variant_id: string | null;
-      rarity_tier: string;
-      rarity_color: string;
-    };
+  // Deliberately not query.graph for the metadata itself — see
+  // fetchLineItemMetadata's doc comment. Confirmed by direct testing: this
+  // route querying "items.metadata" (or "items.line_item_metadata")
+  // returned {} unpredictably on line items that genuinely had
+  // won_product_id set, independent of field name or elapsed time. This
+  // raw-SQL read was reliable in every one of those same tests.
+  const metadata = await fetchLineItemMetadata(req.scope, pullItem.id);
+  if (!metadata) {
+    throw notFound();
+  }
+
+  const { won_product_id, won_variant_id, rarity_tier, rarity_color } = metadata;
 
   const { data: products } = await query.graph({
     entity: "product",

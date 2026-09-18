@@ -61,7 +61,12 @@ export const setAuthToken = async (token: string) => {
   cookies.set("_medusa_jwt", token, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
-    sameSite: "strict",
+    // "lax", not "strict": the browser drops a Strict cookie on the
+    // cross-site top-level redirect SumUp's hosted checkout sends the
+    // customer back on (checkout/sumup/return), which silently broke both
+    // cart completion and this auth cookie for logged-in customers. Lax
+    // still withholds the cookie from cross-site POSTs/embeds.
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
 }
@@ -83,7 +88,9 @@ export const setCartId = async (cartId: string) => {
   cookies.set("_medusa_cart_id", cartId, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
-    sameSite: "strict",
+    // See setAuthToken's comment — must survive the cross-site redirect
+    // back from SumUp's hosted checkout, which "strict" silently dropped.
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
 }

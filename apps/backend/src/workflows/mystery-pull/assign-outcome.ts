@@ -1,8 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk";
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils";
 
 export type AssignOutcomeStepInput = {
   pool_id: string;
+  line_item_id: string;
 };
 
 export type AssignedOutcome = {
@@ -19,6 +21,7 @@ type AssignOutcomeCompensateInput = {
   outcome_id: string;
   pool_id: string;
   pool_deactivated: boolean;
+  line_item_id: string;
 };
 
 type PullOutcomeRow = {
@@ -61,6 +64,23 @@ function pickWeighted(outcomes: PullOutcomeRow[]): PullOutcomeRow {
  * outcome's remaining_qty and, if that was the pool's last unit across all
  * outcomes, deactivates the pool — both inside the same transaction/lock.
  *
+ * Also inserts a row into `pull_assignment`, keyed uniquely on
+ * `line_item_id` (see models/pull-assignment.ts), in that same
+ * transaction. This is the hard, database-level guarantee that a line
+ * item is assigned at most once — not just an application-level "is it
+ * already assigned" read beforehand. That distinction matters: this
+ * codebase had exactly that kind of read (via query.graph) turn out to be
+ * unreliable in practice — see CLAUDE.md's Mystery Pull module note. If a
+ * second assignment is ever attempted for a line item that already has
+ * one — a caller bug, a race between the subscriber and the reconciliation
+ * sweep, a stale read anywhere, doesn't matter which — the INSERT below
+ * hits a unique-constraint violation, the whole transaction rolls back
+ * (so remaining_qty is never decremented for the duplicate), and the step
+ * throws. The eligibility checks upstream of this step (in the subscriber
+ * and the sweep) still exist and still matter — they're what keep this
+ * from being called at all in the common case — but this is what makes it
+ * *impossible*, not just unlikely, for a duplicate to actually take effect.
+ *
  * Deliberately does *not* touch inventory — see decrement-inventory.ts.
  * Keeping that in its own step (rather than a plain `await` after this
  * step's transaction commits) is what makes the two-part assignment
@@ -73,7 +93,10 @@ function pickWeighted(outcomes: PullOutcomeRow[]): PullOutcomeRow {
  * leaving the outcome "spent" with no inventory movement to show for it.
  *
  * Throws a "pool sold out" MedusaError if no outcome in the pool has
- * remaining_qty > 0.
+ * remaining_qty > 0. Throws Postgres's own unique-violation error
+ * (uncaught, on purpose — a duplicate assignment attempt is a real bug
+ * upstream and should be loud, not swallowed) if `line_item_id` already
+ * has an assignment.
  */
 export const assignOutcomeStep = createStep(
   "assign-mystery-pull-outcome",
@@ -97,6 +120,17 @@ export const assignOutcomeStep = createStep(
 
       const chosen = pickWeighted(eligible);
       const newRemainingQty = Number(chosen.remaining_qty) - 1;
+
+      // The hard guarantee — see doc comment above. Deliberately not
+      // wrapped in try/catch: a unique-violation here must abort this
+      // transaction (rolling back the decrement below) and propagate as a
+      // real, visible error, not be caught and quietly ignored.
+      await trx("pull_assignment").insert({
+        id: randomUUID(),
+        line_item_id: input.line_item_id,
+        pool_id: input.pool_id,
+        outcome_id: chosen.id,
+      });
 
       await trx("pull_outcome").where({ id: chosen.id }).update({
         remaining_qty: newRemainingQty,
@@ -137,6 +171,7 @@ export const assignOutcomeStep = createStep(
       outcome_id: picked.id,
       pool_id: input.pool_id,
       pool_deactivated: poolDeactivated,
+      line_item_id: input.line_item_id,
     };
 
     return new StepResponse(output, compensateInput);
@@ -149,6 +184,10 @@ export const assignOutcomeStep = createStep(
     const knex = container.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any;
 
     await knex.transaction(async (trx: any) => {
+      await trx("pull_assignment")
+        .where({ line_item_id: compensateInput.line_item_id })
+        .delete();
+
       await trx("pull_outcome")
         .where({ id: compensateInput.outcome_id })
         .increment("remaining_qty", 1)

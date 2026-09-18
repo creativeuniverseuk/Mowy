@@ -48,7 +48,7 @@ const alwaysFailStep = createStep("always-fail-compensation-test-step", async ()
 
 const failAfterAssignWorkflow = createWorkflow(
   "test-fail-after-assign-outcome",
-  (input: { pool_id: string }) => {
+  (input: { pool_id: string; line_item_id: string }) => {
     const outcome = assignOutcomeStep(input);
     alwaysFailStep();
     return new WorkflowResponse(outcome);
@@ -160,11 +160,26 @@ describe("Mystery pull assignment compensation", () => {
   async function cleanupPool(pool: any, outcome: any) {
     const mysteryPullModuleService = container.resolve(MYSTERY_PULL_MODULE) as any;
     const link = container.resolve(ContainerRegistrationKeys.LINK);
+    const query = container.resolve(ContainerRegistrationKeys.QUERY);
 
     await link.dismiss({
       [Modules.PRODUCT]: { product_id: productId },
       [MYSTERY_PULL_MODULE]: { pull_pool_id: pool.id },
     });
+    // A successful (non-compensated) assignment in a test leaves a real
+    // pull_assignment row behind — compensated ones don't (assign-outcome's
+    // own compensation deletes it), but this file runs against a
+    // persistent database, so anything that *can* survive a run must be
+    // cleaned up or a second run collides with it on the unique
+    // line_item_id constraint.
+    const { data: assignments } = await query.graph({
+      entity: "pull_assignment",
+      fields: ["id"],
+      filters: { pool_id: pool.id } as any,
+    });
+    await mysteryPullModuleService.deletePullAssignments(
+      assignments.map((a: any) => a.id)
+    );
     await mysteryPullModuleService.deletePullOutcomes([outcome.id]);
     await mysteryPullModuleService.deletePullPools([pool.id]);
   }
@@ -203,7 +218,9 @@ describe("Mystery pull assignment compensation", () => {
     try {
       let thrown: Error | null = null;
       try {
-        await failAfterAssignWorkflow(container).run({ input: { pool_id: pool.id } });
+        await failAfterAssignWorkflow(container).run({
+          input: { pool_id: pool.id, line_item_id: "ordli_single_step_test" },
+        });
       } catch (err: any) {
         thrown = err;
       }
@@ -251,12 +268,17 @@ describe("Mystery pull assignment compensation", () => {
       const stockBefore = await getInventoryStock();
 
       const { result } = await (
-        createWorkflow("test-assign-and-decrement-only", (input: { pool_id: string }) => {
-          const o = assignOutcomeStep(input);
-          decrementInventoryForOutcomeStep({ outcome: o });
-          return new WorkflowResponse(o);
-        })
-      )(container).run({ input: { pool_id: pool.id } });
+        createWorkflow(
+          "test-assign-and-decrement-only",
+          (input: { pool_id: string; line_item_id: string }) => {
+            const o = assignOutcomeStep(input);
+            decrementInventoryForOutcomeStep({ outcome: o });
+            return new WorkflowResponse(o);
+          }
+        )
+      )(container).run({
+        input: { pool_id: pool.id, line_item_id: "ordli_decrement_sanity_test" },
+      });
 
       expect(result.id).toBe(outcome.id);
       expect(await getOutcomeQty(outcome.id)).toBe(0);

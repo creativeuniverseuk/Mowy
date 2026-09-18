@@ -15,7 +15,7 @@ import { MYSTERY_PULL_MODULE } from "../../src/modules/mystery_pull";
  */
 const testAssignWorkflow = createWorkflow(
   "test-assign-mystery-pull-outcome",
-  (input: { pool_id: string }) => {
+  (input: { pool_id: string; line_item_id: string }) => {
     const outcome = assignOutcomeStep(input);
     return new WorkflowResponse(outcome);
   }
@@ -143,9 +143,16 @@ medusaIntegrationTestRunner({
         ]);
         const rareOutcome = outcomes.find((o: any) => o.rarity_tier === "Rare");
 
+        // Distinct line_item_id per call — pull_assignment.line_item_id is
+        // unique, and each concurrent draw here represents a different
+        // customer/order, exactly like production. Prefixed with pool.id
+        // (itself a fresh random id per test run) so a leftover row from a
+        // previous run can never collide with this one.
         const settled = await Promise.allSettled(
-          Array.from({ length: 5 }, () =>
-            testAssignWorkflow(container).run({ input: { pool_id: pool.id } })
+          Array.from({ length: 5 }, (_, i) =>
+            testAssignWorkflow(container).run({
+              input: { pool_id: pool.id, line_item_id: `${pool.id}-line-${i}` },
+            })
           )
         );
 
@@ -191,6 +198,14 @@ medusaIntegrationTestRunner({
         );
         expect(totalRemaining).toBe(1 + 10 + 10 - 5);
 
+        const { data: assignments } = await query.graph({
+          entity: "pull_assignment",
+          fields: ["id"],
+          filters: { pool_id: pool.id } as any,
+        });
+        await mysteryPullModuleService.deletePullAssignments(
+          assignments.map((a: any) => a.id)
+        );
         await mysteryPullModuleService.deletePullOutcomes(
           outcomes.map((o: any) => o.id)
         );
@@ -199,6 +214,7 @@ medusaIntegrationTestRunner({
 
       it("fails gracefully instead of double-selling when concurrent demand exceeds total pool stock", async () => {
         const container = getContainer();
+        const query = container.resolve(ContainerRegistrationKeys.QUERY);
         const mysteryPullModuleService = container.resolve(
           MYSTERY_PULL_MODULE
         ) as any;
@@ -210,8 +226,10 @@ medusaIntegrationTestRunner({
         ]);
 
         const settled = await Promise.allSettled(
-          Array.from({ length: 5 }, () =>
-            testAssignWorkflow(container).run({ input: { pool_id: pool.id } })
+          Array.from({ length: 5 }, (_, i) =>
+            testAssignWorkflow(container).run({
+              input: { pool_id: pool.id, line_item_id: `${pool.id}-line-${i}` },
+            })
           )
         );
 
@@ -241,6 +259,14 @@ medusaIntegrationTestRunner({
           });
         expect((refreshedPools[0] as any).is_active).toBe(false);
 
+        const { data: assignments } = await query.graph({
+          entity: "pull_assignment",
+          fields: ["id"],
+          filters: { pool_id: pool.id } as any,
+        });
+        await mysteryPullModuleService.deletePullAssignments(
+          assignments.map((a: any) => a.id)
+        );
         await mysteryPullModuleService.deletePullOutcomes(
           outcomes.map((o: any) => o.id)
         );

@@ -112,6 +112,13 @@ module.exports = defineConfig({
               merchantCode: process.env.SUMUP_MERCHANT_CODE,
               checkoutMode: "hosted",
               returnUrl: `${process.env.MEDUSA_BACKEND_URL}/hooks/payment/sumup_sumup`,
+              // Fallback only — the storefront's payment step
+              // (modules/checkout/components/payment) overrides this
+              // per-session with a `redirect_url` that embeds the cart id,
+              // since the _medusa_cart_id cookie isn't reliably present on
+              // every browser's cross-site redirect back from SumUp. This
+              // static value only applies to a session that didn't set its
+              // own (see @sumup/medusa-plugin's createCheckoutPayload).
               redirectUrl: `${process.env.STOREFRONT_URL}/checkout/sumup/return`,
             },
           },

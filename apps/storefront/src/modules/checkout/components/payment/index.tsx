@@ -1,7 +1,7 @@
 "use client"
 
 import { RadioGroup } from "@headlessui/react"
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { isStripeLike, isSumUp, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
@@ -83,6 +83,22 @@ const Payment = ({
       if (!checkActiveSession) {
         await initiatePaymentSession(cart, {
           provider_id: selectedPaymentMethod,
+          // SumUp's hosted checkout redirects the browser back cross-site
+          // (localhost:8000 -> sumup.com -> localhost:8000), and some
+          // browsers drop the _medusa_cart_id cookie on that round trip
+          // (confirmed: SameSite=Lax + Path=/ still isn't enough in
+          // practice). Embedding the cart id in the return URL itself
+          // gives the return route a fallback that doesn't depend on the
+          // cookie surviving the trip — see createCheckoutPayload in
+          // @sumup/medusa-plugin's utils.js, which prefers
+          // data.redirect_url over the provider's static config default.
+          ...(isSumUp(selectedPaymentMethod)
+            ? {
+                data: {
+                  redirect_url: `${window.location.origin}/checkout/sumup/return?cart_id=${cart.id}`,
+                },
+              }
+            : {}),
         })
       }
 

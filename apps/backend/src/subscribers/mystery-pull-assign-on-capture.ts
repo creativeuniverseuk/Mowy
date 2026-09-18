@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { assignMysteryPullOutcomeWorkflow } from "../workflows/mystery-pull";
+import { fetchAlreadyAssignedLineItemIds } from "../workflows/mystery-pull/line-item-metadata";
 
 /**
  * Draws a mystery-pull outcome for every order line item whose product is a
@@ -12,7 +13,19 @@ import { assignMysteryPullOutcomeWorkflow } from "../workflows/mystery-pull";
  *
  * Guards against running twice for the same line item (event redelivery,
  * multiple payments on one order, etc.) by checking whether the line item
- * already carries a `won_product_id` in its metadata before drawing.
+ * already carries a `won_product_id` in its metadata before drawing — via
+ * fetchAlreadyAssignedLineItemIds, a direct SQL read, not query.graph. See
+ * that helper's doc comment for why: query.graph's resolution of
+ * order.items.metadata (and items.line_item_metadata) was confirmed, by
+ * direct side-by-side testing against a live order, to unpredictably
+ * return stale/empty data for lines that genuinely have metadata set —
+ * independent of which of the two field names was used and independent of
+ * how long ago the write happened. Raw SQL against order_line_item was
+ * reliable in every one of those same tests. Getting this "already
+ * assigned" check wrong doesn't just misroute a UI state — it would redraw
+ * (and re-decrement real inventory for) a line item that was already
+ * correctly assigned, which is unacceptable for a feature paying out real,
+ * unique physical cards.
  */
 export default async function mysteryPullAssignOnCapture({
   event: { data },
@@ -28,7 +41,6 @@ export default async function mysteryPullAssignOnCapture({
       "payment_collection.order.id",
       "payment_collection.order.items.id",
       "payment_collection.order.items.product_id",
-      "payment_collection.order.items.metadata",
       "payment_collection.order.items.product.pull_pool.id",
       "payment_collection.order.items.product.pull_pool.is_active",
     ],
@@ -42,11 +54,22 @@ export default async function mysteryPullAssignOnCapture({
     return;
   }
 
-  const eligibleItems = (order.items ?? []).filter((item: any) => {
+  const candidateItems = (order.items ?? []).filter((item: any) => {
     const pool = item.product?.pull_pool;
-    const alreadyAssigned = Boolean(item.metadata?.won_product_id);
-    return pool?.id && pool.is_active && !alreadyAssigned;
+    return pool?.id && pool.is_active;
   });
+
+  if (!candidateItems.length) {
+    return;
+  }
+
+  const alreadyAssignedIds = await fetchAlreadyAssignedLineItemIds(
+    container,
+    candidateItems.map((item: any) => item.id)
+  );
+  const eligibleItems = candidateItems.filter(
+    (item: any) => !alreadyAssignedIds.has(item.id)
+  );
 
   if (!eligibleItems.length) {
     return;
