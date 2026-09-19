@@ -34,6 +34,7 @@
     "@medusajs/draft-order": "2.21.0",
     "@medusajs/framework": "2.21.0",
     "@medusajs/medusa": "2.21.0",
+    "@medusajs/types": "2.21.0",
     "@medusajs/ui": "4.2.4",
     "@rokmohar/medusa-plugin-meilisearch": "^2.2.0",
     "@sumup/medusa-plugin": "0.1.0",
