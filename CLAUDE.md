@@ -222,6 +222,22 @@ Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
   this fix was, rather than trusting the diff on inspection alone; this bug
   has now fooled a from-scratch reading of the code twice.
 
+## Admin gotchas
+
+- **Every new product needs a price set explicitly, as its own step.** In the
+  admin: Variants → "…" menu → **Edit prices**. It is separate from the main
+  product form, so creating and publishing a product without it succeeds
+  silently, and it is easy to miss on a Mystery Pull product where attention
+  is on the pool and outcomes setup. Symptom: the storefront shows "Price on
+  request" and "Buy and open a pull" appears to do nothing — the cart's
+  line-item call fails with a 400 (`Variants with IDs … do not have a
+  price`), which the click handler currently swallows. Check the price first
+  when a new product's buy button seems dead.
+- A Mystery Pull *pack* product should have a single default variant. Rarity
+  belongs on the pool's outcomes (each linked to its own prize product), not
+  on pack variants — the storefront buys `variants[0]`, so extra rarity
+  variants make the purchased variant arbitrary.
+
 ## Status
 
 Repo initialised with documentation only. No app code scaffolded yet.
