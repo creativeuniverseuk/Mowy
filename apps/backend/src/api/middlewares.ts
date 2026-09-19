@@ -3,9 +3,11 @@ import {
   MedusaNextFunction,
   MedusaRequest,
   MedusaResponse,
+  validateAndTransformBody,
 } from "@medusajs/framework/http";
 import { z } from "@medusajs/framework/zod";
 import { MedusaError } from "@medusajs/framework/utils";
+import { AdminUpsertCardDetail } from "./admin/products/[id]/card-detail/validators";
 
 const cardAdditionalDataSchema = z
   .object({
@@ -134,6 +136,11 @@ export default defineMiddlewares({
         grade: z.number().optional(),
       },
       middlewares: [validateCardAdditionalData],
+    },
+    {
+      matcher: "/admin/products/:id/card-detail",
+      method: ["POST"],
+      middlewares: [validateAndTransformBody(AdminUpsertCardDetail)],
     },
     {
       matcher: "/store/products*",
