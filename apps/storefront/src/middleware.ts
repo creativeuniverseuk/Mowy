@@ -166,6 +166,9 @@ export const config = {
     // the backend SumUp provider's configured `redirectUrl`
     // (apps/backend/medusa-config.ts), which SumUp itself redirects to
     // verbatim — it must not get a country-code prefix inserted in front of it.
-    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens|checkout/sumup/return).*)",
+    // admin is Payload CMS's own admin panel (the (payload) route group) —
+    // it has nothing to do with Medusa regions and must work even if the
+    // Medusa backend this middleware calls is down.
+    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens|checkout/sumup/return|admin).*)",
   ],
 }

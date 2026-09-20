@@ -7,6 +7,16 @@ const requiredEnvs = [
     description:
       "Learn how to create a publishable key: https://docs.medusajs.com/v2/resources/storefront-development/publishable-api-keys",
   },
+  {
+    key: "PAYLOAD_SECRET",
+    description:
+      "Used by Payload CMS (src/payload.config.ts) to sign/encrypt auth tokens. Any long random string.",
+  },
+  {
+    key: "PAYLOAD_DATABASE_URI",
+    description:
+      "Postgres connection string for Payload CMS (src/payload.config.ts) — the same Postgres instance Medusa uses, with schemaName: \"payload\" keeping its tables in their own schema.",
+  },
 ]
 
 function checkEnvVariables() {

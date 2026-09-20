@@ -178,6 +178,117 @@ Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
   `src/workflows/mystery-pull/line-item-metadata.ts` — reliable in every
   test run, including immediately after a write.
 
+## Payload CMS
+
+Embedded in `apps/storefront` (`src/payload.config.ts`), self-hosted (no
+Payload Cloud), Postgres adapter pointed at the same Neon instance Medusa
+uses but with `schemaName: "payload"` — a separate schema, not a separate
+database, so one Postgres instance still covers everything.
+
+- **`src/app` has two top-level route groups, each with its own root
+  layout, and nothing outside a route group.** `(storefront)` holds
+  everything that existed before Payload — `[countryCode]`, `api`,
+  `checkout`, `not-found.tsx`, `design-tokens`, the OG images — with the
+  original root `layout.tsx` moved in unchanged. `(payload)` holds the
+  admin panel (`admin/[[...segments]]`) and Payload's own REST/GraphQL
+  routes (`api/[...slug]`, `api/graphql`, `api/graphql-playground`), using
+  `@payloadcms/next`'s `RootLayout`, which renders its own `<html>`/`<body>`.
+  This is Next.js's documented "multiple root layouts" pattern — it's the
+  only way to get two independent `<html>` roots in one App Router tree,
+  and it's why there's no `layout.tsx` directly in `src/app` any more.
+  Anything genuinely new at the top level needs its own route group, not a
+  bare folder in `src/app`.
+- `src/middleware.ts`'s matcher excludes `admin` (alongside the
+  pre-existing `api`/`design-tokens`/etc. exclusions) — without that, every
+  request to `/admin` first runs the storefront's Medusa-region-detection
+  middleware and 500s if the Medusa backend happens to be down. Payload's
+  admin has nothing to do with Medusa regions and must work independently
+  of it.
+- **`admin/importMap.js` must be the real output of Payload's own
+  generator, not a hand-written stand-in** — even a config with zero custom
+  `admin.components` still needs entries for the field/dashboard components
+  the built-in field types and lexical editor features resolve through
+  (confirmed directly: a hand-written empty `importMap.js` compiles and
+  serves `/admin`, but the dashboard body renders completely blank with a
+  console error — `getFromImportMap: PayloadComponent not found in
+  importMap` — the moment any of those resolve). Regenerate it (see the CLI
+  gotcha below) any time a collection, block, or field's admin config
+  changes shape.
+- **CRITICAL — the Payload CLI (`payload generate:types`,
+  `generate:importmap`, `run <script>`) does not work on this project's
+  Node version (v26.9.0) as of Payload 3.90.1, confirmed by direct testing,
+  not inferred.** Every code path the CLI's `bin.js` can take —
+  `tsx` (default), `tsx` with `--no-require-module`, and `--use-swc` — was
+  tried directly and each hits a different Node v26-specific crash before
+  ever reaching this project's own config:
+  - Default: `ERR_REQUIRE_ASYNC_MODULE` requiring `@payloadcms/richtext-lexical` (its ESM has top-level await).
+  - `--no-require-module`: reverts to the older `ERR_REQUIRE_ESM` requiring `payload`'s own ESM build.
+  - `--use-swc`: `ERR_REQUIRE_CYCLE_MODULE` on `src/collections/Users.ts`, a file with no cycle in it.
+  - Bumping `tsx` to the latest (4.23.15) via a pnpm override fixes the
+    first crash but uncovers a fourth: `undici`'s own `index.js`
+    unconditionally does `new CacheStorage()` at module-load time, which
+    throws "Illegal constructor" against Node v26's own native
+    `CacheStorage` global — reproduced identically on undici 7.29.0 (what
+    Payload ships) and the latest 8.10.2, so it isn't an undici-version fix
+    either.
+
+  Root cause, as far as this was narrowed: `tsx`'s CJS-from-ESM interop
+  (needed because `payload.config.ts` must be loaded as CommonJS for the
+  CLI) fights Node v26's evolving synchronous `require(esm)` semantics —
+  four distinct failure modes across two loader strategies point at the
+  interop layer, not at this project's config (Medusa's own CLI, on the
+  same Node version, in the same repo, hits none of this — the exposure is
+  specific to how Payload's CLI loads TypeScript, not to Node v26 broadly).
+
+  **Working around it — bypass `tsx` and the CLI's own loader entirely,
+  land in real native ESM before any Payload code runs:**
+  1. Bundle `payload.config.ts` alone with esbuild, `--packages=external`
+     so only this project's own relative imports (collections, blocks) get
+     resolved into one file — Payload's own packages stay untouched,
+     bare-specifier imports, resolved normally by Node:
+     ```
+     npx esbuild src/payload.config.ts --bundle --platform=node --format=esm \
+       --outfile=/tmp/payload.config.bundled.mjs --packages=external
+     ```
+  2. Import that bundled file from a plain `.mts`/`.mjs` script that calls
+     whatever the CLI would have (all confirmed working this way):
+     `generateImportMap` (`payload/dist/bin/generateImportMap/index.js`),
+     `generateTypes` (`payload/dist/bin/generateTypes.js`), or, for a
+     one-off script, `getPayload({ config })` directly (see
+     `src/scripts/seed-about-page.ts`). These are deep imports into
+     `payload`'s `dist/`, not public exports — reach them with a relative
+     file path from your script (not a bare `payload/...` specifier), which
+     sidesteps the package's `exports` map restriction.
+  3. Run with plain `node` (no flags needed) — real ESM `import` handles
+     top-level await and CJS/ESM interop correctly on its own; this is
+     exactly what `tsx`'s synthetic CJS shim was getting wrong.
+  4. **Watch `typescript.outputFile`'s path resolution in `payload.config.ts`
+     if it's computed from `import.meta.url`/`dirname`** — that resolves
+     relative to wherever the *bundle* physically sits (esbuild's
+     `--outfile`), not the real `src/payload.config.ts`, since bundling
+     rewrites `import.meta.url` for the merged file. Move the generated
+     file to the intended path afterward, or generate into the bundle's own
+     directory in the first place.
+
+  Package.json's `payload`, `generate:types`, `generate:importmap`, and
+  `seed:pages` scripts still call the real CLI (`payload generate:types`,
+  etc.) as the intended, ecosystem-standard interface — they'll start
+  working the day `tsx` (or Node) closes this gap. Until then, use the
+  bundle-and-native-node approach above instead of hand-rolling generated
+  files or skipping codegen. This does **not** affect `next dev`/`next
+  build`: Next's own SWC pipeline transpiles `payload.config.ts` and
+  everything under `(payload)` without going through `tsx` at all — the
+  admin panel, live preview, and the Postgres-backed collections all run
+  normally in the actual dev server. Only the standalone CLI is affected.
+- **`sharp` must be imported and passed into `buildConfig({ sharp })`
+  explicitly** (`src/payload.config.ts`) — installing it isn't enough,
+  Media's `imageSizes` (`src/collections/Media.ts`) silently skips resizing
+  without this and Payload logs a warning on boot. The `sharp` import's
+  default export needs a cast (`as unknown as Parameters<typeof
+  buildConfig>[0]["sharp"]`) — a type-only mismatch between `sharp`'s own
+  declaration file and Payload's simplified `SharpDependency` type, not a
+  behavioural difference.
+
 ## Known upstream issues
 
 - `apps/backend/patches/@tsc_tech__medusa-plugin-cloudinary.patch` — pnpm patch
