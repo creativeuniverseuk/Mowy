@@ -257,6 +257,21 @@ Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
   `accentColor` you'll find elsewhere in the storefront codebase is Mystery
   Pull's per-outcome `rarity_color` — a different field entirely, already
   live on the Mystery Pulls category page and pull-reveal screen.)
+- **There is no admin widget zone for the sidebar's own header.** Verified
+  directly against the installed `@medusajs/dashboard@2.21.0`'s injection
+  zone registry (`@medusajs/admin-shared`'s `INJECTION_ZONES`) and its
+  `Header` component: the top of the sidebar is a Store-name/avatar dropdown
+  (reads `useStore()`, i.e. **Settings → Store → Name**), not a hardcoded
+  "Medusa" logo, and it isn't exposed as an injection zone at all — no
+  widget can touch it. The only zone in the authenticated shell is
+  `"topbar"`, which renders inline with the notification bell in the main
+  content header, not the sidebar. MOWY's admin branding
+  (`src/admin/widgets/mowy-brand.tsx`) is therefore two separate fixes: the
+  `topbar` zone widget (an actual hexagonal chrome-M/cobalt-chevron mark)
+  for a visible logo, plus setting Store name to "MOWY" for the sidebar
+  header itself, which was reading "Default Store" until this was set. If a
+  future Medusa version adds a real sidebar-header zone, prefer it over this
+  combination.
 
 ## Status
 
