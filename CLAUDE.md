@@ -247,6 +247,16 @@ Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
   responsive stat-card grid uses `style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}`
   rather than a Tailwind responsive-grid utility). See
   `apps/backend/src/admin/routes/dashboard/page.tsx`.
+- **Known gap, not a bug: Site settings' `accent_color` picker persists but
+  does nothing yet.** It saves correctly end-to-end — admin form → the
+  `site_settings` module's DB row → both `/admin/site-settings` and
+  `/store/site-settings` — but no storefront component currently reads it.
+  The site's brand cobalt (banner, nav, footer, buttons) stays a fixed
+  Tailwind token throughout. Don't mistake a colour change with no visible
+  effect for a broken save; it isn't wired to any UI yet. (Unrelated: the
+  `accentColor` you'll find elsewhere in the storefront codebase is Mystery
+  Pull's per-outcome `rarity_color` — a different field entirely, already
+  live on the Mystery Pulls category page and pull-reveal screen.)
 
 ## Status
 

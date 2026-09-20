@@ -3,16 +3,18 @@ import { Suspense } from "react"
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
+import { getSiteSettings } from "@lib/data/site-settings"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale] = await Promise.all([
+  const [regions, locales, currentLocale, siteSettings] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
+    getSiteSettings(),
   ])
 
   return (
@@ -28,10 +30,19 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
+              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase flex items-center"
               data-testid="nav-store-link"
             >
-              MOWY
+              {siteSettings.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={siteSettings.logo_url}
+                  alt="MOWY"
+                  className="h-8 w-auto object-contain"
+                />
+              ) : (
+                "MOWY"
+              )}
             </LocalizedClientLink>
           </div>
 

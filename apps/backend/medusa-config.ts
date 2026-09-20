@@ -42,6 +42,9 @@ module.exports = defineConfig({
       resolve: "./src/modules/mystery_pull",
     },
     {
+      resolve: "./src/modules/site_settings",
+    },
+    {
       resolve: "@medusajs/medusa/file",
       options: {
         providers: [

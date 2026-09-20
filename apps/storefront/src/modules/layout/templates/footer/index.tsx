@@ -1,4 +1,5 @@
 import { listCategories } from "@lib/data/categories"
+import { getSiteSettings } from "@lib/data/site-settings"
 import { HttpTypes } from "@medusajs/types"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -14,6 +15,21 @@ const SHOP_ORDER = [
   "Mystery Pulls",
 ]
 
+// CLAUDE.md's business details — the fallback until the admin's Site
+// settings page (src/admin/routes/settings/site) has been filled in. A
+// freshly migrated site_settings row is all nulls, and the footer's contact
+// details shouldn't go blank just because nobody has visited that page yet.
+const DEFAULT_ADDRESS_LINES = ["Abingdon Street Market", "Edward St, Blackpool FY1 1DR"]
+const DEFAULT_PHONE = "+44 7427 255704"
+const DEFAULT_EMAIL = "Snorlaxandmowytcg@gmail.com"
+
+const SOCIAL_LABELS: Record<string, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  tiktok: "TikTok",
+  x: "X",
+}
+
 /**
  * Receipt-style site footer — monospace, dashed divider, torn-edge top
  * (matches the .foot-grid/.foot-bottom structure and dashed divider in
@@ -21,11 +37,23 @@ const SHOP_ORDER = [
  * that mockup and is a from-scratch CSS mask/gradient addition).
  */
 export default async function Footer() {
-  const allCategories = await listCategories()
+  const [allCategories, siteSettings] = await Promise.all([
+    listCategories(),
+    getSiteSettings(),
+  ])
   const topLevel = allCategories.filter((c) => !c.parent_category)
   const shopLinks = SHOP_ORDER.map((name) =>
     topLevel.find((c) => c.name === name)
   ).filter((c): c is HttpTypes.StoreProductCategory => Boolean(c))
+
+  const addressLines = siteSettings.address
+    ? siteSettings.address.split("\n").filter(Boolean)
+    : DEFAULT_ADDRESS_LINES
+  const phone = siteSettings.contact_phone || DEFAULT_PHONE
+  const email = siteSettings.contact_email || DEFAULT_EMAIL
+  const socialLinks = Object.entries(siteSettings.social_links ?? {}).filter(
+    ([, url]) => Boolean(url)
+  )
 
   return (
     <footer className="bg-ink">
@@ -54,6 +82,22 @@ export default async function Footer() {
                 Family-run trading card and collectibles shop, based at
                 Abingdon Street Market, Blackpool.
               </p>
+              {socialLinks.length > 0 && (
+                <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+                  {socialLinks.map(([platform, url]) => (
+                    <li key={platform}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-chrome-dim transition-colors hover:text-chrome"
+                      >
+                        {SOCIAL_LABELS[platform] ?? platform}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div>
@@ -89,7 +133,7 @@ export default async function Footer() {
                 </li>
                 <li>
                   <a
-                    href="mailto:Snorlaxandmowytcg@gmail.com"
+                    href={`mailto:${email}`}
                     className="text-sm text-chrome-dim transition-colors hover:text-chrome"
                   >
                     Contact us
@@ -103,22 +147,23 @@ export default async function Footer() {
                 Visit / Contact
               </h5>
               <ul className="flex flex-col gap-2.5 text-sm text-chrome-dim">
-                <li>Abingdon Street Market</li>
-                <li>Edward St, Blackpool FY1 1DR</li>
+                {addressLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
                 <li>
                   <a
-                    href="tel:+447427255704"
+                    href={`tel:${phone.replace(/\s+/g, "")}`}
                     className="transition-colors hover:text-chrome"
                   >
-                    +44 7427 255704
+                    {phone}
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:Snorlaxandmowytcg@gmail.com"
+                    href={`mailto:${email}`}
                     className="transition-colors hover:text-chrome"
                   >
-                    Snorlaxandmowytcg@gmail.com
+                    {email}
                   </a>
                 </li>
               </ul>

@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import BinderHero from "@modules/home/components/binder-hero"
 import CategoryShowcase from "@modules/home/components/category-showcase"
+import HomepageBanner from "@modules/home/components/homepage-banner"
 import NewsletterBand from "@modules/home/components/newsletter-band"
 import StoryBand from "@modules/home/components/story-band"
 import { getRegion } from "@lib/data/regions"
@@ -27,6 +28,7 @@ export default async function Home(props: {
 
   return (
     <>
+      <HomepageBanner />
       <BinderHero region={region} />
       <CategoryShowcase region={region} />
       <StoryBand />
