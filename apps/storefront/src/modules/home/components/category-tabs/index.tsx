@@ -38,14 +38,24 @@ export default function CategoryTabs({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={`min-w-[168px] flex-none rounded-t-xl rounded-b border border-t-[3px] px-[18px] pb-4 pt-5 text-left transition-colors duration-200 ${
               isActive
-                ? "border-t-holo-a bg-panel-soft border-cobalt/40"
-                : "border-t-cobalt bg-panel border-line"
+                ? "border-t-cobalt bg-panel-soft border-cobalt shadow-[0_0_0_1px_rgba(59,110,255,0.15)]"
+                : "border-t-line bg-panel border-line hover:border-t-cobalt-soft"
             }`}
           >
-            <div className="font-mono text-[10.5px] text-chrome-dim">
+            <div
+              className={`font-mono text-[10.5px] ${
+                isActive ? "text-cobalt-soft" : "text-chrome-dim"
+              }`}
+            >
               {tab.badge}
             </div>
-            <h3 className="mt-1.5 text-h4 text-chrome">{tab.name}</h3>
+            <h3
+              className={`mt-1.5 text-h4 ${
+                isActive ? "text-chrome" : "text-chrome-dim"
+              }`}
+            >
+              {tab.name}
+            </h3>
           </motion.button>
         )
       })}

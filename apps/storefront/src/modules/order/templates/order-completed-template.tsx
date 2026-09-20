@@ -245,10 +245,10 @@ export default async function OrderCompletedTemplate({
             Need help with this order?
           </p>
           <div className="mt-2 flex items-center justify-center gap-x-6 font-mono text-mono-sku uppercase tracking-[0.06em] text-cobalt-soft">
-            <LocalizedClientLink href="/account/orders" className="hover:text-cobalt">
+            <LocalizedClientLink href="/account/orders" className="hover:text-chrome">
               Track order
             </LocalizedClientLink>
-            <a href="mailto:Snorlaxandmowytcg@gmail.com" className="hover:text-cobalt">
+            <a href="mailto:Snorlaxandmowytcg@gmail.com" className="hover:text-chrome">
               Contact us
             </a>
           </div>

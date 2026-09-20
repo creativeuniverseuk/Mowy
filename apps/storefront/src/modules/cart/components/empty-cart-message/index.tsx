@@ -18,7 +18,7 @@ const EmptyCartMessage = () => {
       </p>
       <LocalizedClientLink
         href="/store"
-        className="group flex items-center gap-1 font-mono text-mono-sku uppercase tracking-[0.08em] text-cobalt-soft hover:text-cobalt"
+        className="group flex items-center gap-1 font-mono text-mono-sku uppercase tracking-[0.08em] text-cobalt-soft hover:text-chrome"
       >
         Explore products
         <span className="transition-transform group-hover:translate-x-0.5">

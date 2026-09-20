@@ -14,7 +14,7 @@ export default async function HomepageBanner() {
   }
 
   return (
-    <div className="bg-cobalt">
+    <div className="bg-cobalt-deep">
       <p className="content-container py-2 text-center font-mono text-[11.5px] uppercase tracking-[0.08em] text-chrome">
         {homepage_banner_text}
       </p>

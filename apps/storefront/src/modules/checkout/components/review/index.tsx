@@ -19,12 +19,12 @@ const Review = ({ cart }: { cart: any }) => {
     (cart.payment_collection || paidByGiftcard)
 
   return (
-    <div className="bg-white">
-      <div className="flex flex-row items-center justify-between mb-6">
+    <div>
+      <div className="flex flex-row items-center justify-between px-6 py-5 small:px-10">
         <Heading
           level="h2"
           className={clx(
-            "flex flex-row text-3xl-regular gap-x-2 items-baseline",
+            "flex flex-row items-baseline gap-x-2 font-headline text-h3 text-chrome",
             {
               "opacity-50 pointer-events-none select-none": !isOpen,
             }
@@ -34,10 +34,10 @@ const Review = ({ cart }: { cart: any }) => {
         </Heading>
       </div>
       {isOpen && previousStepsCompleted && (
-        <>
+        <div className="px-6 pb-8 small:px-10">
           <div className="flex items-start gap-x-1 w-full mb-6">
             <div className="w-full">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
+              <Text className="text-body-sm text-chrome-dim">
                 By clicking the Place Order button, you confirm that you have
                 read, understand and accept our Terms of Use, Terms of Sale and
                 Returns Policy and acknowledge that you have read Medusa
@@ -46,7 +46,7 @@ const Review = ({ cart }: { cart: any }) => {
             </div>
           </div>
           <PaymentButton cart={cart} data-testid="submit-order-button" />
-        </>
+        </div>
       )}
     </div>
   )

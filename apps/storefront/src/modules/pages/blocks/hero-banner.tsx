@@ -65,7 +65,7 @@ export default function HeroBanner({
           >
             <Link
               href={cta.url}
-              className="inline-flex items-center rounded-md bg-cobalt px-6 py-3 text-body-sm font-medium text-chrome transition-colors hover:bg-cobalt-soft"
+              className="inline-flex items-center rounded-md bg-cobalt-deep px-6 py-3 text-body-sm font-medium text-chrome transition-colors hover:bg-cobalt-deep/90"
             >
               {cta.label}
             </Link>

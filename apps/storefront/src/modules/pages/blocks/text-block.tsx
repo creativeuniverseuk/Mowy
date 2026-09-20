@@ -18,7 +18,7 @@ export default function TextBlock({ richText }: TextBlockProps) {
       <div className="content-container max-w-3xl py-16">
         <div
           className="space-y-5 text-body-lg leading-[1.7] text-chrome-dim
-            [&_a]:text-cobalt-soft [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-cobalt
+            [&_a]:text-cobalt-soft [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-chrome
             [&_h1]:font-headline [&_h1]:text-h2 [&_h1]:text-chrome
             [&_h2]:font-headline [&_h2]:text-h3 [&_h2]:text-chrome
             [&_h3]:font-headline [&_h3]:text-h4 [&_h3]:text-chrome

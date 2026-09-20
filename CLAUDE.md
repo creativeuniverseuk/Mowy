@@ -55,6 +55,25 @@ The three semantic status colours (green/amber/red) are for stock state only and
 stay visually distinct from `cobalt` — never reuse cobalt to mean stock status, and
 never use green/amber/red for brand chrome or generic UI accents.
 
+- **`cobalt` (#3b6eff) fails WCAG AA as a solid button fill under `chrome`
+  (#e8e9ee) text — measured 3.56:1 against the 4.5:1 minimum.** This isn't
+  borderline: it only looked acceptable because it's the same treatment on
+  every CTA site-wide, but none of those buttons' labels are large/bold
+  enough to qualify for the lower 3:1 large-text threshold (WCAG's exception
+  needs 18pt/24px normal weight, or 14pt/18.66px at ~700 weight — these are
+  14px at `font-medium`/500). The previous `hover:bg-cobalt-soft` (and the
+  `hover:bg-cobalt/90` variant used on the product-detail add-to-cart
+  button) made it worse, not better: `cobalt-soft` is lighter, so hovering
+  actually drops contrast to ~2.38:1.
+  Fixed with a new token, `cobalt-deep` (`#345fd1`, `src/design-tokens.js`)
+  — ~4.68:1 against `chrome`, for solid CTA-button fills only. Hover uses
+  `hover:bg-cobalt-deep/90` (alpha blend toward the dark page/panel behind
+  it, which only deepens the colour further in this design system since
+  every surface token is dark — verified ~5.3:1). `cobalt`/`cobalt-soft`
+  are unchanged and still correct for links, borders, and focus rings,
+  which are judged against the 3:1 non-text/UI-component threshold, not
+  4.5:1 — don't use `cobalt-deep` there, it reads too dark for those.
+
 ### Type
 
 - **Headlines**: Space Grotesk

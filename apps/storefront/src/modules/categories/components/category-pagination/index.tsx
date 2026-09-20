@@ -31,7 +31,7 @@ export default function CategoryPagination({
       onClick={() => goTo(p)}
       className={`h-9 min-w-9 rounded-md px-2 font-mono text-sm transition-colors ${
         p === page
-          ? "bg-cobalt text-chrome"
+          ? "bg-cobalt-deep text-chrome"
           : "text-chrome-dim hover:bg-panel-soft hover:text-chrome"
       }`}
     >

@@ -34,9 +34,9 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
       value={paymentProviderId}
       disabled={disabled}
       className={clx(
-        "flex flex-col gap-y-2 text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
+        "flex flex-col gap-y-2 text-body-sm cursor-pointer py-4 border border-line bg-panel rounded-base px-8 mb-2 transition-colors hover:border-chrome-dim",
         {
-          "border-ui-border-interactive":
+          "border-cobalt bg-panel-soft":
             selectedPaymentOptionId === paymentProviderId,
         }
       )}
@@ -44,14 +44,14 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
       <div className="flex items-center justify-between ">
         <div className="flex items-center gap-x-4">
           <Radio checked={selectedPaymentOptionId === paymentProviderId} />
-          <Text className="text-base-regular">
+          <Text className="text-chrome">
             {paymentInfoMap[paymentProviderId]?.title || paymentProviderId}
           </Text>
           {isManual(paymentProviderId) && isDevelopment && (
             <PaymentTest className="hidden small:block" />
           )}
         </div>
-        <span className="justify-self-end text-ui-fg-base">
+        <span className="justify-self-end text-chrome-dim">
           {paymentInfoMap[paymentProviderId]?.icon}
         </span>
       </div>
@@ -85,14 +85,17 @@ export const StripeCardContainer = ({
       style: {
         base: {
           fontFamily: "Inter, sans-serif",
-          color: "#424270",
+          // The chrome/chrome-dim design tokens are hex values Stripe's
+          // iframe can't read as CSS custom properties, so they're
+          // inlined here directly rather than referencing the tokens.
+          color: "#e8e9ee",
           "::placeholder": {
-            color: "rgb(107 114 128)",
+            color: "#9a9ba8",
           },
         },
       },
       classes: {
-        base: "pt-3 pb-1 block w-full h-11 px-4 mt-0 bg-ui-bg-field border rounded-md appearance-none focus:outline-none focus:ring-0 focus:shadow-borders-interactive-with-active border-ui-border-base hover:bg-ui-bg-field-hover transition-all duration-300 ease-in-out",
+        base: "pt-3 pb-1 block w-full h-11 px-4 mt-0 bg-panel border rounded-base appearance-none focus:outline-none focus:ring-0 focus:border-cobalt border-line hover:border-chrome-dim transition-all duration-300 ease-in-out",
       },
     }
   }, [])
@@ -107,7 +110,7 @@ export const StripeCardContainer = ({
       {selectedPaymentOptionId === paymentProviderId &&
         (stripeReady ? (
           <div className="my-4 transition-all duration-150 ease-in-out">
-            <Text className="txt-medium-plus text-ui-fg-base mb-1">
+            <Text className="mb-1 font-medium text-chrome">
               Enter your card details:
             </Text>
             <CardElement

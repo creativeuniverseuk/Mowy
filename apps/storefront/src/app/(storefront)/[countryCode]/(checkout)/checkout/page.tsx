@@ -21,13 +21,23 @@ export default async function Checkout() {
 
   return (
     <div className="grid grid-cols-1 content-container gap-x-10 gap-y-8 py-12 small:grid-cols-[1fr_416px]">
-      <div className="rounded-large bg-chrome px-6 py-8 shadow-2xl small:px-10">
+      <div className="rounded-large border border-line bg-ink-2">
+        <div className="border-b border-dashed border-line px-6 py-5 small:px-10">
+          <span className="font-mono text-mono-sku uppercase tracking-[0.14em] text-chrome-dim">
+            MOWY &middot; Checkout
+          </span>
+          <h1 className="mt-1 font-headline text-h2 text-chrome">
+            Checkout
+          </h1>
+        </div>
         <PaymentWrapper cart={cart}>
           <CheckoutForm cart={cart} customer={customer} />
         </PaymentWrapper>
       </div>
-      <div className="rounded-large bg-chrome px-6 py-8 shadow-2xl">
-        <CheckoutSummary cart={cart} />
+      <div className="relative">
+        <div className="sticky top-12">
+          <CheckoutSummary cart={cart} />
+        </div>
       </div>
     </div>
   )

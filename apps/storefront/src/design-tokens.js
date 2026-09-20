@@ -23,6 +23,12 @@ const colors = {
   line: { hex: "#33333f", hsl: "240 11% 22%" },
   "chrome-dim": { hex: "#9a9ba8", hsl: "236 7% 63%" },
   "cobalt-soft": { hex: "#6e93ff", hsl: "225 100% 72%" },
+  // Solid CTA-button fill only — `cobalt` itself is 3.56:1 against `chrome`
+  // text (fails WCAG AA 4.5:1 for the 14px/medium-weight labels these
+  // buttons actually use, which don't qualify for the large-text 3:1
+  // exception). `cobalt-deep` measures ~4.68:1 against `chrome`. Never use
+  // for links/borders/focus rings — those keep `cobalt`/`cobalt-soft`.
+  "cobalt-deep": { hex: "#345fd1", hsl: "226 66% 51%" },
 
   // Stock status — semantic only, never reused for brand chrome
   live: { hex: "#7fd68a", hsl: "128 51% 67%" },

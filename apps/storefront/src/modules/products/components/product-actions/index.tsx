@@ -172,7 +172,7 @@ export default function ProductActions({
           !isValidVariant
         }
         size="lg"
-        className="w-full bg-cobalt text-chrome hover:bg-cobalt/90"
+        className="w-full bg-cobalt-deep text-chrome hover:bg-cobalt-deep/90"
         data-testid="add-product-button"
       >
         {isAdding ? "Adding…" : buttonLabel}

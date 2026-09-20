@@ -141,7 +141,7 @@ const CartDropdown = ({
                   <LocalizedClientLink href="/cart" passHref>
                     <button
                       onClick={close}
-                      className="w-full rounded-base bg-cobalt py-3 text-body-sm font-medium uppercase tracking-[0.08em] text-chrome transition-colors hover:bg-cobalt-soft"
+                      className="w-full rounded-base bg-cobalt-deep py-3 text-body-sm font-medium uppercase tracking-[0.08em] text-chrome transition-colors hover:bg-cobalt-deep/90"
                       data-testid="go-to-cart-button"
                     >
                       Go to bag
@@ -160,7 +160,7 @@ const CartDropdown = ({
                 <LocalizedClientLink href="/store">
                   <button
                     onClick={close}
-                    className="font-mono text-mono-sku uppercase tracking-[0.08em] text-cobalt-soft hover:text-cobalt"
+                    className="font-mono text-mono-sku uppercase tracking-[0.08em] text-cobalt-soft hover:text-chrome"
                   >
                     Explore products
                   </button>
