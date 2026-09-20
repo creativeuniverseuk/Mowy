@@ -237,6 +237,16 @@ Medusa's product module via `src/links/product-pull-pool.ts` (`pull_pool` <->
   belongs on the pool's outcomes (each linked to its own prize product), not
   on pack variants — the storefront buys `variants[0]`, so extra rarity
   variants make the purchased variant arbitrary.
+- **Admin extension UI (`src/admin/routes/**`, `src/admin/widgets/**`) can only
+  use Tailwind classes already present in the admin dashboard's precompiled
+  CSS** (`@medusajs/dashboard`'s build) — there's no JIT compilation of
+  extension source, so a class like `sm:grid-cols-2 xl:grid-cols-4` that isn't
+  already used somewhere in core admin renders as nothing, silently, with no
+  build error. Stick to classes you can find in use elsewhere in the admin, or
+  fall back to inline `style` for anything bespoke (e.g. the dashboard's
+  responsive stat-card grid uses `style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}`
+  rather than a Tailwind responsive-grid utility). See
+  `apps/backend/src/admin/routes/dashboard/page.tsx`.
 
 ## Status
 
