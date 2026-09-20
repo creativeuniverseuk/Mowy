@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import Image from "next/image"
 
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
@@ -30,7 +31,7 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="flex items-center font-headline text-h4 normal-case tracking-[0.04em] text-chrome transition-colors hover:text-cobalt-soft"
+              className="flex items-center transition-opacity hover:opacity-80"
               data-testid="nav-store-link"
             >
               {siteSettings.logo_url ? (
@@ -41,7 +42,14 @@ export default async function Nav() {
                   className="h-8 w-auto object-contain"
                 />
               ) : (
-                "MOWY"
+                <Image
+                  src="/mowy-logo-header.png"
+                  alt="MOWY"
+                  width={800}
+                  height={567}
+                  priority
+                  className="h-14 w-auto object-contain"
+                />
               )}
             </LocalizedClientLink>
           </div>

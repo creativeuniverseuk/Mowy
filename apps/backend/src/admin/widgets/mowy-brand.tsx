@@ -1,51 +1,31 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { Text, Tooltip } from "@medusajs/ui"
+import { Tooltip } from "@medusajs/ui"
 
-const CHROME = "#e8e9ee"
-const COBALT = "#3b6eff"
+import mowyLogoHeader from "./mowy-logo-header.png"
+
 const INK = "#14141c"
 
 /**
- * Hexagonal chrome "M" with a blue chevron (CLAUDE.md's brand identity).
- * Sits on its own fixed-ink chip rather than the admin's theme background —
- * chrome (#e8e9ee, near-white) reads fine on that ink chip in both admin
- * light and dark mode, but would nearly disappear as text/fill directly on
- * the admin's light-mode background, which is white. The chip makes the
- * mark's own contrast independent of the surrounding theme.
+ * Real MOWY logo (hexagonal chrome "M" + blue chevron + wordmark,
+ * design-reference/mowy-logo-header.png), replacing the from-scratch SVG
+ * approximation built in Phase 6 before this asset existed.
+ *
+ * Still sits on its own fixed-ink chip rather than the admin's theme
+ * background, for the same reason the SVG version did: the mark's chrome
+ * tones are a near-white/silver gradient with a transparent background —
+ * checked directly by compositing the actual PNG onto white, and the mark
+ * all but disappears, leaving only the cobalt chevron floating. It reads
+ * perfectly on dark (ink or admin dark mode), so the ink chip makes its
+ * contrast independent of the surrounding theme instead of hoping the
+ * asset happens to suit whichever theme is active.
  */
 function MowyMark() {
   return (
-    <svg width={22} height={22} viewBox="0 0 40 40" aria-hidden>
-      <rect width={40} height={40} rx={9} fill={INK} />
-      <polygon
-        points="20,4 33.86,12 33.86,28 20,36 6.14,28 6.14,12"
-        fill="none"
-        stroke={CHROME}
-        strokeWidth={1.5}
-      />
-      <path
-        d="M11,28 L11,14"
-        stroke={CHROME}
-        strokeWidth={3}
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M29,28 L29,14"
-        stroke={CHROME}
-        strokeWidth={3}
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M11,14 L20,23 L29,14"
-        stroke={COBALT}
-        strokeWidth={3}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
+    <img
+      src={mowyLogoHeader}
+      alt="MOWY"
+      style={{ height: 20, width: "auto", display: "block" }}
+    />
   )
 }
 
@@ -63,14 +43,15 @@ function MowyMark() {
 const MowyBrandWidget = () => {
   return (
     <Tooltip content="MOWY">
-      <div className="flex items-center gap-x-1.5">
+      <div
+        className="flex items-center"
+        style={{
+          backgroundColor: INK,
+          borderRadius: 8,
+          padding: "6px 10px",
+        }}
+      >
         <MowyMark />
-        {/* `lg:inline` isn't in the admin bundle's precompiled CSS (see
-            CLAUDE.md's Tailwind-in-admin-extensions gotcha) — `lg:block`
-            is, and works identically for a single-line label. */}
-        <Text size="small" weight="plus" className="hidden lg:block">
-          MOWY
-        </Text>
       </div>
     </Tooltip>
   )

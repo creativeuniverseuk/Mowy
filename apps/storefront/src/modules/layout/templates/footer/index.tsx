@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 import { listCategories } from "@lib/data/categories"
 import { getSiteSettings } from "@lib/data/site-settings"
 import { HttpTypes } from "@medusajs/types"
@@ -72,12 +74,13 @@ export default async function Footer() {
         <div className="content-container">
           <div className="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-10">
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-h4 text-chrome">MOWY</span>
-                <span className="font-mono text-[11px] text-cobalt-soft">
-                  PLAY &middot; PROTECT &middot; COLLECT
-                </span>
-              </div>
+              <Image
+                src="/mowy-logo-full.png"
+                alt="MOWY — Play, Protect, Collect"
+                width={800}
+                height={639}
+                className="h-20 w-auto object-contain"
+              />
               <p className="mt-3.5 max-w-[280px] text-sm leading-[1.6] text-chrome-dim">
                 Family-run trading card and collectibles shop, based at
                 Abingdon Street Market, Blackpool.
