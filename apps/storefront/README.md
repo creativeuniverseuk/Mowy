@@ -75,7 +75,7 @@ Navigate into your projects directory and get your environment variables ready:
 
 ```shell
 cd nextjs-starter-medusa/
-mv .env.template .env.local
+cp .env.example .env.local
 ```
 
 ### Install dependencies

@@ -181,6 +181,9 @@ importers:
       '@payloadcms/db-postgres':
         specifier: 3.90.1
         version: 3.90.1(payload@3.90.1(graphql@16.14.2)(supports-color@8.1.1)(typescript@5.9.3))(supports-color@8.1.1)
+      '@payloadcms/live-preview-react':
+        specifier: 3.90.1
+        version: 3.90.1(react-dom@19.0.5(react@19.0.5))(react@19.0.5)
       '@payloadcms/next':
         specifier: 3.90.1
         version: 3.90.1(@types/react@19.0.5)(graphql@16.14.2)(monaco-editor@0.56.0)(next@15.3.9(@babel/core@7.29.7(supports-color@8.1.1))(babel-plugin-macros@3.1.0)(react-dom@19.0.5(react@19.0.5))(react@19.0.5)(sass@1.77.4))(payload@3.90.1(graphql@16.14.2)(supports-color@8.1.1)(typescript@5.9.3))(react-dom@19.0.5(react@19.0.5))(react@19.0.5)(supports-color@8.1.1)(typescript@5.9.3)
@@ -1966,6 +1969,15 @@ packages:
     peerDependencies:
       graphql: ^16.8.1
       payload: 3.90.1
+
+  '@payloadcms/live-preview-react@3.90.1':
+    resolution: {integrity: sha512-8MiiIRoUw4kcQmwxf7WYa8+q8XfyVl8wWHhyXdmj8gqv8rgsS3UWulqmSQv4skVGpSlfp8dcpUQs0ryjN8Z1kw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.1 || ^19.1.2 || ^19.2.1
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.1 || ^19.1.2 || ^19.2.1
+
+  '@payloadcms/live-preview@3.90.1':
+    resolution: {integrity: sha512-UPHDLAojJzlQi9C00mVoxmo2s7RWNy2l0TsQdOOU7nXaMIvyJaqJ4Msij7u0MCXUC5GXeybNsZwTlWq0R0mcBA==}
 
   '@payloadcms/next@3.90.1':
     resolution: {integrity: sha512-V3dWReaacHdyLjeFIB4KiOnpiYXeJrAiSxDXL3SdgXfMz17P/8P+HsrXYuqqeChHjBUu6TeDONdITxgFR1NSwg==}
@@ -7405,6 +7417,14 @@ snapshots:
       tsx: 4.22.4
     transitivePeerDependencies:
       - typescript
+
+  '@payloadcms/live-preview-react@3.90.1(react-dom@19.0.5(react@19.0.5))(react@19.0.5)':
+    dependencies:
+      '@payloadcms/live-preview': 3.90.1
+      react: 19.0.5
+      react-dom: 19.0.5(react@19.0.5)
+
+  '@payloadcms/live-preview@3.90.1': {}
 
   '@payloadcms/next@3.90.1(@types/react@19.0.5)(graphql@16.14.2)(monaco-editor@0.56.0)(next@15.3.9(@babel/core@7.29.7(supports-color@8.1.1))(babel-plugin-macros@3.1.0)(react-dom@19.0.5(react@19.0.5))(react@19.0.5)(sass@1.77.4))(payload@3.90.1(graphql@16.14.2)(supports-color@8.1.1)(typescript@5.9.3))(react-dom@19.0.5(react@19.0.5))(react@19.0.5)(supports-color@8.1.1)(typescript@5.9.3)':
     dependencies:

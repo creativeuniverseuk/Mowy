@@ -17,6 +17,11 @@ const requiredEnvs = [
     description:
       "Postgres connection string for Payload CMS (src/payload.config.ts) — the same Postgres instance Medusa uses, with schemaName: \"payload\" keeping its tables in their own schema.",
   },
+  {
+    key: "PAYLOAD_PREVIEW_SECRET",
+    description:
+      "Authenticates GET /next/preview (src/app/(payload)/next/preview/route.ts), which Pages' live preview uses to enable Next.js draft mode. Any long random string.",
+  },
 ]
 
 function checkEnvVariables() {

@@ -92,7 +92,17 @@ or UUID in a public URL.
   component needs interactivity, browser APIs, or hooks
 - No secrets in code — all credentials/API keys via environment variables, never
   committed (see `.gitignore`); use `.env.example` to document required vars as they
-  are introduced
+  are introduced. **Must be named exactly `.env.example`** — the root
+  `.gitignore`'s `.env.*` rule blanket-ignores everything starting with
+  `.env`, with a single carve-out for `!.env.example`. `apps/storefront`
+  shipped from its starter template with `.env.template` instead, which
+  silently was never tracked (confirmed: `git log --all` for that path
+  returns nothing, from the very first commit onward) — every var anyone
+  documented there across earlier phases existed only on that person's
+  disk. Renamed to `.env.example` and committed for real; if a documented
+  var seems to have "gone missing" for a teammate, check `git show
+  HEAD:<path>` on the actual file before assuming it's a gitignore
+  oversight elsewhere.
 - Commit incrementally and in scope — one logical change per commit, don't bundle
   unrelated work
 - `/design-reference` contains static HTML/CSS/JS mockups for visual comparison only.
@@ -288,6 +298,45 @@ database, so one Postgres instance still covers everything.
   buildConfig>[0]["sharp"]`) — a type-only mismatch between `sharp`'s own
   declaration file and Payload's simplified `SharpDependency` type, not a
   behavioural difference.
+
+### Rendering Pages on the public site
+
+- **`app/[slug]/page.tsx` lives at
+  `src/app/(storefront)/[countryCode]/(main)/[slug]/page.tsx`, not at the
+  storefront's true root**, despite what a literal reading of "top-level
+  `[slug]` route" would suggest. Nav and Footer (rendered by the `(main)`
+  layout every other storefront route already goes through) both use
+  `LocalizedClientLink`, which reads `countryCode` from `useParams()` — a
+  CMS page rendered outside the `[countryCode]` segment would get a working
+  page but a broken header/footer (links resolving to `/undefined/...`).
+  Nesting under `[countryCode]/(main)` costs nothing (Payload Pages don't
+  need Medusa region data themselves) and keeps the site chrome intact.
+  `Pages.ts`'s `livePreview.url` and the `/next/preview` redirect target
+  both point at this same location.
+- **Live preview needs two separate pieces working together, not just
+  draft mode** — confirmed by testing each in isolation. Draft mode +
+  `payload.find({ draft: true })` alone (what `[slug]/page.tsx` does)
+  is enough for the preview iframe to show unsaved changes *the first time
+  it loads*, but edits made after that point sit invisible until something
+  tells the iframe to re-fetch — typing in the admin does **not**
+  automatically update it on its own. The second piece is
+  `@payloadcms/live-preview-react`'s `RefreshRouteOnSave` (used in
+  `src/modules/pages/live-preview-listener.tsx`, rendered only when
+  `draftMode().isEnabled`): it listens for the postMessage Payload's admin
+  sends on every form change and calls `router.refresh()`, which re-runs
+  the page's server component (the same `draft: true` fetch) so the
+  iframe reflects each edit within about a second, autosave-limited (the
+  800ms interval in `Pages.ts`'s `versions.drafts.autosave`) rather than
+  truly keystroke-by-keystroke. `useLivePreview` (the other hook this
+  package exports) is a different, heavier approach — it holds page data
+  entirely client-side, merged from postMessage payloads with no server
+  round-trip — and would need the whole block-rendering tree restructured
+  around it; not used here, since `RefreshRouteOnSave` reuses the existing
+  server-component fetch as-is.
+- **Pages' SEO fields are a hand-rolled `meta` group** (`title`,
+  `description`, `image`) — no `@payloadcms/plugin-seo`. `generateMetadata`
+  in `[slug]/page.tsx` falls back to the page's own `title` when
+  `meta.title` is empty.
 
 ## Known upstream issues
 

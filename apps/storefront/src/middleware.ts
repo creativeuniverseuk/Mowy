@@ -168,7 +168,13 @@ export const config = {
     // verbatim — it must not get a country-code prefix inserted in front of it.
     // admin is Payload CMS's own admin panel (the (payload) route group) —
     // it has nothing to do with Medusa regions and must work even if the
-    // Medusa backend this middleware calls is down.
-    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens|checkout/sumup/return|admin).*)",
+    // Medusa backend this middleware calls is down. next/preview and
+    // next/exit-preview (src/app/(payload)/next/*) are draft-mode toggle
+    // routes with their own `path` query param carrying where to redirect
+    // to next — region-prefixing this URL itself (rather than the `path`
+    // it redirects to, which does go through this middleware normally)
+    // would break the secret/path query string the same way it broke
+    // /admin before that carve-out.
+    "/((?!api|_next/static|_next/image|favicon.ico|images|assets|png|svg|jpg|jpeg|gif|webp|design-tokens|checkout/sumup/return|admin|next/preview|next/exit-preview).*)",
   ],
 }
