@@ -33,7 +33,7 @@ async function getPage(slug: string, draft: boolean) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug, countryCode } = await params
   const { isEnabled: isDraftMode } = await draftMode()
   const page = await getPage(slug, isDraftMode)
 
@@ -47,14 +47,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     typeof page.meta?.image === "object" && page.meta.image?.url
       ? page.meta.image.url
       : undefined
+  const canonicalPath = `/${countryCode}/${slug}`
 
   return {
-    title: `${title} | MOWY`,
+    title,
     description,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
-      title: `${title} | MOWY`,
+      title,
       description,
+      url: canonicalPath,
       images: imageUrl ? [imageUrl] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   }
 }

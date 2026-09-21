@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { getCategoryByHandle, listCategories } from "@lib/data/categories"
+import { listProducts } from "@lib/data/products"
 import { listRegions } from "@lib/data/regions"
 import { CardFacetField, CARD_FACET_FIELDS, parseCsvParam } from "@lib/util/card-facets"
 import { StoreRegion } from "@medusajs/types"
@@ -52,15 +53,37 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const productCategory = await getCategoryByHandle(params.category)
 
-    const title = `${productCategory.name} | MOWY`
+    const title = productCategory.name
+    const description =
+      productCategory.description || `Shop ${title} at MOWY.`
+    const canonicalPath = `/${params.countryCode}/categories/${params.category.join("/")}`
 
-    const description = productCategory.description ?? `${title} category.`
+    const { response } = await listProducts({
+      countryCode: params.countryCode,
+      queryParams: {
+        category_id: [productCategory.id],
+        limit: 1,
+        fields: "thumbnail",
+      },
+    })
+    const ogImage = response.products[0]?.thumbnail
 
     return {
       title,
       description,
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        canonical: canonicalPath,
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonicalPath,
+        images: ogImage ? [ogImage] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
       },
     }
   } catch (error) {

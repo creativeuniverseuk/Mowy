@@ -7,10 +7,25 @@ import NewsletterBand from "@modules/home/components/newsletter-band"
 import StoryBand from "@modules/home/components/story-band"
 import { getRegion } from "@lib/data/regions"
 
-export const metadata: Metadata = {
-  title: "MOWY — Trading Cards & Collectibles",
-  description:
-    "Hand-checked Pokémon TCG, 3D-printed figures, and a growing shelf of Lorcana, Riftbound and beyond.",
+const DESCRIPTION =
+  "Hand-checked Pokémon TCG, 3D-printed figures, and a growing shelf of Lorcana, Riftbound and beyond."
+
+export async function generateMetadata(props: {
+  params: Promise<{ countryCode: string }>
+}): Promise<Metadata> {
+  const { countryCode } = await props.params
+  const canonicalPath = `/${countryCode}`
+
+  return {
+    description: DESCRIPTION,
+    alternates: {
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      description: DESCRIPTION,
+      url: canonicalPath,
+    },
+  }
 }
 
 export default async function Home(props: {

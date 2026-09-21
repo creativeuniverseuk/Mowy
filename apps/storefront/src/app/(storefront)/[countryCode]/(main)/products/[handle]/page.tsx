@@ -5,6 +5,7 @@ import { getProductPullPool } from "@lib/data/mystery-pulls"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import MysteryPullPage from "@modules/mystery-pulls/templates/mystery-pull-page"
+import ProductJsonLd from "@modules/products/components/product-jsonld"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
@@ -89,13 +90,26 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const description =
+    product.description || `${product.title} — available now at MOWY.`
+  const canonicalPath = `/${params.countryCode}/products/${product.handle}`
+
   return {
-    title: `${product.title} | MOWY`,
-    description: `${product.title}`,
+    title: product.title,
+    description,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
-      title: `${product.title} | MOWY`,
-      description: `${product.title}`,
-      images: product.thumbnail ? [product.thumbnail] : [],
+      title: product.title,
+      description,
+      url: canonicalPath,
+      images: product.thumbnail ? [product.thumbnail] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.title,
+      description,
     },
   }
 }
@@ -138,11 +152,18 @@ export default async function ProductPage(props: Props) {
   }
 
   return (
-    <ProductTemplate
-      product={pricedProduct}
-      region={region}
-      countryCode={params.countryCode}
-      images={images}
-    />
+    <>
+      <ProductJsonLd
+        product={pricedProduct}
+        countryCode={params.countryCode}
+        selectedVariantId={selectedVariantId}
+      />
+      <ProductTemplate
+        product={pricedProduct}
+        region={region}
+        countryCode={params.countryCode}
+        images={images}
+      />
+    </>
   )
 }

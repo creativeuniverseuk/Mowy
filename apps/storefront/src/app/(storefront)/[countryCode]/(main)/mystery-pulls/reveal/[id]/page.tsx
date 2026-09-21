@@ -6,7 +6,8 @@ import { getMysteryPullOdds, getProductPullPool } from "@lib/data/mystery-pulls"
 import PullRevealOverlay from "@modules/mystery-pulls/components/pull-reveal-overlay"
 
 export const metadata: Metadata = {
-  title: "Opening your pull | MOWY",
+  title: "Opening your pull",
+  robots: { index: false, follow: false },
 }
 
 type Props = {
