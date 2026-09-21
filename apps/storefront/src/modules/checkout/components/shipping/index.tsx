@@ -18,10 +18,36 @@ const PICKUP_OPTION_OFF = "__PICKUP_OFF"
 
 type ShippingProps = {
   cart: HttpTypes.StoreCart
-  availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
+  // Not the base StoreCartShippingOption — cart-scoped shipping-option
+  // listing (this component's only caller, listCartShippingMethods in
+  // src/lib/data/fulfillment.ts, queries with `cart_id`) always expands
+  // `service_zone` server-side, confirmed directly against a running cart:
+  // `GET /store/shipping-options?cart_id=...` returns
+  // `service_zone.fulfillment_set.{type,location.address}` fully populated
+  // with no `fields` override needed — see @medusajs/types'
+  // StoreShippingOptionListResponse, which already types
+  // `shipping_options` this way. The base type was under-declaring real
+  // data, not masking a missing fetch.
+  availableShippingMethods:
+    | HttpTypes.StoreCartShippingOptionWithServiceZone[]
+    | null
 }
 
-function formatAddress(address: HttpTypes.StoreCartAddress) {
+// Reads the same fields from two SDK shapes that disagree on optionality:
+// StoreCartAddress declares them optional-undefined, StoreFulfillmentAddress
+// (a pickup location's address — see the service_zone.fulfillment_set.
+// location.address usage below) declares them required-nullable. Both
+// satisfy this narrower structural type, and every access below is already
+// behind a truthiness check, so null and undefined behave identically here.
+type FormattableAddress = {
+  address_1?: string | null
+  address_2?: string | null
+  city?: string | null
+  postal_code?: string | null
+  country_code?: string | null
+}
+
+function formatAddress(address: FormattableAddress | null | undefined) {
   if (!address) {
     return ""
   }

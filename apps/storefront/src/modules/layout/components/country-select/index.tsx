@@ -27,24 +27,35 @@ type CountrySelectProps = {
 }
 
 const CountrySelect = ({ toggleState, regions }: CountrySelectProps) => {
-  const [current, setCurrent] = useState<
-    | { country: string | undefined; region: string; label: string | undefined }
-    | undefined
-  >(undefined)
+  const [current, setCurrent] = useState<CountryOption | undefined>(undefined)
 
   const { countryCode } = useParams()
   const currentPath = usePathname().split(`/${countryCode}`)[1]
 
   const { state, close } = toggleState
 
+  // Medusa's BaseRegionCountry types iso_2/display_name as optional (a
+  // country entity in general need not have them set), but every real
+  // country in Medusa's built-in reference table — the only source countries
+  // come from here — always has both. Confirmed directly against this
+  // store's live /store/regions: its one configured region/country (gb,
+  // United Kingdom) has both populated. Filtering rather than just widening
+  // CountryOption's fields to optional means a country that somehow lacked
+  // either field would be dropped from the list instead of silently
+  // reaching updateRegion() with an undefined country code.
   const options = useMemo(() => {
     return regions
       ?.map((r) => {
-        return r.countries?.map((c) => ({
-          country: c.iso_2,
-          region: r.id,
-          label: c.display_name,
-        }))
+        return r.countries
+          ?.filter(
+            (c): c is typeof c & { iso_2: string; display_name: string } =>
+              Boolean(c?.iso_2 && c?.display_name)
+          )
+          .map((c) => ({
+            country: c.iso_2,
+            region: r.id,
+            label: c.display_name,
+          }))
       })
       .flat()
       .sort((a, b) => (a?.label ?? "").localeCompare(b?.label ?? ""))
