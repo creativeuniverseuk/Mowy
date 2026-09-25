@@ -80,7 +80,7 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="font-mono text-mono-sku uppercase tracking-[0.08em] text-chrome hover:text-cobalt-soft"
+            className="flex h-full items-center font-mono text-mono-sku uppercase tracking-[0.08em] text-chrome hover:text-cobalt-soft"
             href="/cart"
             data-testid="nav-cart-link"
           >{`Bag (${totalItems})`}</LocalizedClientLink>

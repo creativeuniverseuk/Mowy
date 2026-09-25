@@ -17,23 +17,23 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
       >
         Delivery
       </Heading>
-      <div className="flex items-start gap-x-8">
+      <div className="flex flex-col gap-y-6 small:flex-row small:items-start small:gap-x-8 small:gap-y-0">
         <div
-          className="flex flex-col w-1/3"
+          className="flex min-w-0 flex-col small:w-1/3"
           data-testid="shipping-address-summary"
         >
           <Text className="txt-medium-plus text-chrome mb-1">
             Shipping Address
           </Text>
-          <Text className="txt-medium text-chrome-dim">
+          <Text className="txt-medium break-words text-chrome-dim">
             {order.shipping_address?.first_name}{" "}
             {order.shipping_address?.last_name}
           </Text>
-          <Text className="txt-medium text-chrome-dim">
+          <Text className="txt-medium break-words text-chrome-dim">
             {order.shipping_address?.address_1}{" "}
             {order.shipping_address?.address_2}
           </Text>
-          <Text className="txt-medium text-chrome-dim">
+          <Text className="txt-medium break-words text-chrome-dim">
             {order.shipping_address?.postal_code},{" "}
             {order.shipping_address?.city}
           </Text>
@@ -43,22 +43,22 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
         </div>
 
         <div
-          className="flex flex-col w-1/3 "
+          className="flex min-w-0 flex-col small:w-1/3"
           data-testid="shipping-contact-summary"
         >
           <Text className="txt-medium-plus text-chrome mb-1">Contact</Text>
-          <Text className="txt-medium text-chrome-dim">
+          <Text className="txt-medium break-words text-chrome-dim">
             {order.shipping_address?.phone}
           </Text>
-          <Text className="txt-medium text-chrome-dim">{order.email}</Text>
+          <Text className="txt-medium break-words text-chrome-dim">{order.email}</Text>
         </div>
 
         <div
-          className="flex flex-col w-1/3"
+          className="flex min-w-0 flex-col small:w-1/3"
           data-testid="shipping-method-summary"
         >
           <Text className="txt-medium-plus text-chrome mb-1">Method</Text>
-          <Text className="txt-medium text-chrome-dim">
+          <Text className="txt-medium break-words text-chrome-dim">
             {(order as any).shipping_methods[0]?.name} (
             {convertToLocale({
               amount: order.shipping_methods?.[0].total ?? 0,

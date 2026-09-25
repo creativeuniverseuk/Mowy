@@ -104,9 +104,9 @@ export default async function Footer() {
             </div>
 
             <div>
-              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+              <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
                 Shop
-              </h5>
+              </h3>
               <ul className="flex flex-col gap-2.5">
                 {shopLinks.map((category) => (
                   <li key={category.id}>
@@ -122,9 +122,9 @@ export default async function Footer() {
             </div>
 
             <div>
-              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+              <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
                 Support
-              </h5>
+              </h3>
               <ul className="flex flex-col gap-2.5">
                 <li>
                   <LocalizedClientLink
@@ -146,9 +146,9 @@ export default async function Footer() {
             </div>
 
             <div>
-              <h5 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
+              <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-cobalt-soft">
                 Visit / Contact
-              </h5>
+              </h3>
               <ul className="flex flex-col gap-2.5 text-sm text-chrome-dim">
                 {addressLines.map((line) => (
                   <li key={line}>{line}</li>

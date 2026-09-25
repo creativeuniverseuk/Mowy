@@ -96,24 +96,24 @@ const Addresses = ({
         <div className="px-6 pb-8 small:px-10">
           <div className="text-body-sm">
             {cart && cart.shipping_address ? (
-              <div className="flex items-start gap-x-8">
-                <div className="flex items-start gap-x-1 w-full">
+              <div className="flex flex-col gap-y-6 small:flex-row small:items-start small:gap-x-8 small:gap-y-0">
+                <div className="flex flex-col gap-y-6 small:flex-row small:items-start small:gap-x-1 w-full">
                   <div
-                    className="flex flex-col w-1/3"
+                    className="flex min-w-0 flex-col small:w-1/3"
                     data-testid="shipping-address-summary"
                   >
                     <Text className="mb-1 font-medium text-chrome">
                       Shipping Address
                     </Text>
-                    <Text className="text-chrome-dim">
+                    <Text className="break-words text-chrome-dim">
                       {cart.shipping_address.first_name}{" "}
                       {cart.shipping_address.last_name}
                     </Text>
-                    <Text className="text-chrome-dim">
+                    <Text className="break-words text-chrome-dim">
                       {cart.shipping_address.address_1}{" "}
                       {cart.shipping_address.address_2}
                     </Text>
-                    <Text className="text-chrome-dim">
+                    <Text className="break-words text-chrome-dim">
                       {cart.shipping_address.postal_code},{" "}
                       {cart.shipping_address.city}
                     </Text>
@@ -123,22 +123,22 @@ const Addresses = ({
                   </div>
 
                   <div
-                    className="flex flex-col w-1/3 "
+                    className="flex min-w-0 flex-col small:w-1/3"
                     data-testid="shipping-contact-summary"
                   >
                     <Text className="mb-1 font-medium text-chrome">
                       Contact
                     </Text>
-                    <Text className="text-chrome-dim">
+                    <Text className="break-words text-chrome-dim">
                       {cart.shipping_address.phone}
                     </Text>
-                    <Text className="text-chrome-dim">
+                    <Text className="break-words text-chrome-dim">
                       {cart.email}
                     </Text>
                   </div>
 
                   <div
-                    className="flex flex-col w-1/3"
+                    className="flex min-w-0 flex-col small:w-1/3"
                     data-testid="billing-address-summary"
                   >
                     <Text className="mb-1 font-medium text-chrome">
@@ -151,15 +151,15 @@ const Addresses = ({
                       </Text>
                     ) : (
                       <>
-                        <Text className="text-chrome-dim">
+                        <Text className="break-words text-chrome-dim">
                           {cart.billing_address?.first_name}{" "}
                           {cart.billing_address?.last_name}
                         </Text>
-                        <Text className="text-chrome-dim">
+                        <Text className="break-words text-chrome-dim">
                           {cart.billing_address?.address_1}{" "}
                           {cart.billing_address?.address_2}
                         </Text>
-                        <Text className="text-chrome-dim">
+                        <Text className="break-words text-chrome-dim">
                           {cart.billing_address?.postal_code},{" "}
                           {cart.billing_address?.city}
                         </Text>

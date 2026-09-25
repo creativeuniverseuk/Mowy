@@ -57,7 +57,7 @@ export default async function Nav() {
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
             <div className="hidden small:flex items-center gap-x-6 h-full">
               <LocalizedClientLink
-                className="transition-colors hover:text-cobalt-soft"
+                className="flex h-full items-center transition-colors hover:text-cobalt-soft"
                 href="/account"
                 data-testid="nav-account-link"
               >
@@ -67,7 +67,7 @@ export default async function Nav() {
             <Suspense
               fallback={
                 <LocalizedClientLink
-                  className="flex gap-2 transition-colors hover:text-cobalt-soft"
+                  className="flex h-full items-center gap-2 transition-colors hover:text-cobalt-soft"
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
