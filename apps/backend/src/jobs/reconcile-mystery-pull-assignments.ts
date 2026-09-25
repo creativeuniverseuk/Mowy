@@ -1,7 +1,23 @@
 import { MedusaContainer } from "@medusajs/framework";
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
+import { ContainerRegistrationKeys, defineFileConfig } from "@medusajs/framework/utils";
 import { assignMysteryPullOutcomeWorkflow } from "../workflows/mystery-pull";
 import { fetchAlreadyAssignedLineItemIds } from "../workflows/mystery-pull/line-item-metadata";
+
+// Same pattern already used for Meilisearch in medusa-config.ts (Phase 5B):
+// this job has no reason to run against an integration test's throwaway
+// database — its own real cron tick was confirmed (directly, via
+// medusaIntegrationTestRunner's own log output) to hold a lingering DB
+// connection right at the moment a later test's beforeEach tries to
+// restore the next test's database from a template snapshot, which
+// Postgres refuses while any session is still attached to the template
+// source ("... is being accessed by other users"). Registering it is what
+// makes Medusa's job loader schedule it at all — see job-loader.js's
+// isFileSkipped() check, which this defineFileConfig() call feeds via
+// dynamicImport() — so it's skipped entirely under test, the same way the
+// search module is.
+defineFileConfig({
+  isDisabled: () => process.env.NODE_ENV === "test",
+})
 
 /**
  * Safety net for src/subscribers/mystery-pull-assign-on-capture.ts.
