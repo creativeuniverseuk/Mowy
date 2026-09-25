@@ -122,6 +122,14 @@ or UUID in a public URL.
   var seems to have "gone missing" for a teammate, check `git show
   HEAD:<path>` on the actual file before assuming it's a gitignore
   oversight elsewhere.
+  **It happened a second time in `apps/backend`**: its `.env.template`
+  (Meilisearch, Cloudinary, SumUp, revalidation secret) was never tracked
+  either, until it was renamed in `9d8d424`. So never create or keep a
+  `.env.template`, `.env.sample` or any other `.env.*` name, in any app,
+  and rename a scaffold's template before adding to it. After creating an
+  env template, run `git check-ignore -v <file>`; no output means git will
+  track it. A genuinely new template name needs its own `!` carve-out in
+  `.gitignore`, as `!.env.test.example` has.
 - Commit incrementally and in scope — one logical change per commit, don't bundle
   unrelated work
 - `/design-reference` contains static HTML/CSS/JS mockups for visual comparison only.
