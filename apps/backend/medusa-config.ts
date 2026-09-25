@@ -13,6 +13,25 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 // config below is untouched for dev/production.
 const isTestEnv = process.env.NODE_ENV === 'test'
 
+// Resend is only registered when it has a key, so a dev machine without
+// one still boots — the provider's validateOptions() would otherwise throw
+// at startup. Without it, anything sent on the "email" channel fails with
+// "Could not find a notification provider for channel: email", which
+// callers (e.g. src/api/contact-form/route.ts) catch and report.
+const resendProvider = process.env.RESEND_API_KEY
+  ? [
+      {
+        resolve: "./src/modules/resend",
+        id: "resend",
+        options: {
+          channels: ["email"],
+          api_key: process.env.RESEND_API_KEY,
+          from: process.env.RESEND_FROM_EMAIL || "MOWY <onboarding@resend.dev>",
+        },
+      },
+    ]
+  : []
+
 module.exports = defineConfig({
   plugins: [
     {
@@ -103,6 +122,26 @@ module.exports = defineConfig({
             },
           },
         ]),
+    // Declaring the notification module at all replaces Medusa's built-in
+    // default (defineConfig's local provider on the admin "feed" channel),
+    // so that provider is re-listed here explicitly to keep the admin's
+    // notification bell working exactly as before.
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/notification-local",
+            id: "local",
+            options: {
+              name: "Local Notification Provider",
+              channels: ["feed"],
+            },
+          },
+          ...resendProvider,
+        ],
+      },
+    },
     {
       resolve: "@medusajs/medusa/payment",
       options: {

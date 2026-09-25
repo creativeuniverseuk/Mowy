@@ -42,6 +42,7 @@
     "@tsc_tech/medusa-plugin-cloudinary": "^1.0.0",
     "react-i18next": "13.5.0",
     "react-router-dom": "7.18.2",
+    "resend": "^6.28.1",
     "zod": "4.2.0"
   },
   "devDependencies": {
