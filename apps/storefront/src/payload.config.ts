@@ -8,6 +8,7 @@ import sharp from "sharp"
 import Users from "./collections/Users"
 import Media from "./collections/Media"
 import Pages from "./collections/Pages"
+import ContactSubmissions from "./collections/ContactSubmissions"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +26,7 @@ export default buildConfig({
     admin: "/admin",
   },
   editor: lexicalEditor(),
-  collections: [Users, Media, Pages],
+  collections: [Users, Media, Pages, ContactSubmissions],
   // Powers Media's imageSizes (src/collections/Media.ts) — required
   // explicitly here, not picked up just by being installed. The cast works
   // around a type-only mismatch between sharp's own declaration file and

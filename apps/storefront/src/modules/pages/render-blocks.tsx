@@ -4,6 +4,7 @@ import TextBlock from "./blocks/text-block"
 import TeamGrid from "./blocks/team-grid"
 import PhotoGallery from "./blocks/photo-gallery"
 import FAQAccordion from "./blocks/faq-accordion"
+import ContactForm from "./blocks/contact-form"
 
 type LayoutBlock = NonNullable<Page["layout"]>[number]
 
@@ -17,6 +18,7 @@ const blockComponents: {
   teamGrid: TeamGrid,
   photoGallery: PhotoGallery,
   faqAccordion: FAQAccordion,
+  contactForm: ContactForm,
 }
 
 /**

@@ -4,6 +4,7 @@ import TextBlock from "../blocks/TextBlock"
 import TeamGrid from "../blocks/TeamGrid"
 import PhotoGallery from "../blocks/PhotoGallery"
 import FAQAccordion from "../blocks/FAQAccordion"
+import ContactForm from "../blocks/ContactForm"
 
 const getBaseURL = () => process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000"
 const DEFAULT_COUNTRY_CODE = process.env.NEXT_PUBLIC_DEFAULT_REGION || "gb"
@@ -54,7 +55,7 @@ const Pages: CollectionConfig = {
     {
       name: "layout",
       type: "blocks",
-      blocks: [HeroBanner, TextBlock, TeamGrid, PhotoGallery, FAQAccordion],
+      blocks: [HeroBanner, TextBlock, TeamGrid, PhotoGallery, FAQAccordion, ContactForm],
     },
     {
       name: "meta",
