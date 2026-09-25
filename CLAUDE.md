@@ -452,7 +452,47 @@ database, so one Postgres instance still covers everything.
   future Medusa version adds a real sidebar-header zone, prefer it over this
   combination.
 
+## Email / notifications
+
+- **Resend (`apps/backend/src/modules/resend`) is the project's first and
+  only real email provider.** Before it, the notification module only ran
+  Medusa's built-in log-only `notification-local` provider on the admin
+  `feed` channel, and nothing in the app sent notifications at all. There
+  are still no order-confirmation emails; that's separate work, and it
+  should reuse this provider on the `"email"` channel.
+- **Declaring the notification module in `medusa-config.ts` replaces
+  Medusa's default config entirely**, which is why `notification-local` on
+  `feed` is listed there explicitly. Remove it and the admin's
+  notification bell silently loses its provider.
+- Resend is only registered when `RESEND_API_KEY` is set. Without it the
+  backend boots normally, but every `"email"` send fails with "Could not
+  find a notification provider for channel: email".
+- The provider does no templating: callers pass rendered
+  `content.subject/html/text`, plus optional `provider_data.reply_to`.
+- **Contact form flow:** Contact Form block
+  (`apps/storefront/src/blocks/ContactForm.ts`) → storefront
+  `POST /api/contact` (honeypot, 3-per-10-minute rate limit, stores to
+  Payload's `contact-submissions`) → backend `POST /contact-form` (shared
+  `CONTACT_FORM_SECRET`, recipient only from `CONTACT_FORM_RECIPIENT`) →
+  Resend. The submission is stored before the email is attempted, and its
+  **Email status** in the CMS shows `failed` for any that didn't send.
+
 ## Pre-launch checklist
+
+- [ ] **Verify a real contact-form email arrives.** Only the failure path
+  has been tested so far (no `RESEND_API_KEY` set). Set the key, submit the
+  form on `/contact-us`, and confirm the email arrives with the full name,
+  email and message, and that Reply goes to the sender. Then verify a
+  sending domain in Resend and set `RESEND_FROM_EMAIL` on it; until then
+  Resend only delivers to the address that owns the Resend account.
+- [ ] **Payload has no migrations, and production needs them.** Payload
+  only auto-creates or updates its tables when `NODE_ENV !== "production"`
+  (`@payloadcms/db-postgres`'s `connect.js`); every Payload table so far,
+  `contact_submissions` included, exists only because dev mode pushed it.
+  Before deploying (Phase 9), generate migrations for the whole Payload
+  schema (the CLI's `migrate:create` hits the Node v26 problem above, so
+  use the bundle-and-native-node workaround) and run them against the
+  production database.
 
 - [ ] **Verify `global-error.tsx` actually renders** —
   `apps/storefront/src/app/(storefront)/global-error.tsx` is confirmed
