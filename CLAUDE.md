@@ -1,8 +1,8 @@
 # MOWY
 
-UK trading-card e-commerce site, rebranding from "Snorlax and Mowy TCG". Monorepo,
-no app code scaffolded yet — this file documents the intended stack and conventions
-before scaffolding begins.
+UK trading-card e-commerce site, rebranding from "Snorlax and Mowy TCG". Monorepo
+(`apps/backend`, `apps/storefront`) — this file documents the stack, conventions,
+and hard-won gotchas. See **Status** at the bottom for phase progress.
 
 ## Business
 
@@ -466,4 +466,6 @@ database, so one Postgres instance still covers everything.
 
 ## Status
 
-Repo initialised with documentation only. No app code scaffolded yet.
+- **Phases 0–8:** complete and committed.
+- **Phase 11:** in progress.
+- **Phase 9 (deployment):** pending.
