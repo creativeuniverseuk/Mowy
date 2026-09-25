@@ -6,8 +6,12 @@ import {
   validateAndTransformBody,
 } from "@medusajs/framework/http";
 import { z } from "@medusajs/framework/zod";
-import { MedusaError } from "@medusajs/framework/utils";
+import {
+  ContainerRegistrationKeys,
+  MedusaError,
+} from "@medusajs/framework/utils";
 import { AdminUpsertCardDetail } from "./admin/products/[id]/card-detail/validators";
+import { revalidateStorefront } from "../lib/revalidate-storefront";
 
 const cardAdditionalDataSchema = z
   .object({
@@ -122,6 +126,30 @@ async function allowPullPoolFields(
   next();
 }
 
+// Price lists (sales, price overrides) change what the storefront shows as
+// a product's calculated price, but Medusa 2.21's price-list workflows emit
+// no events — there's no PriceListWorkflowEvents at all — so the
+// product-changed subscriber can't catch them. Instead, this waits for any
+// successful write to /admin/price-lists* and revalidates then, after the
+// response has been sent, so the admin request isn't slowed down.
+async function revalidateStorefrontAfterPriceListChange(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  res.on("finish", () => {
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER);
+      void revalidateStorefront(
+        logger,
+        `price-list middleware (${req.method} ${req.path})`
+      );
+    }
+  });
+
+  next();
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -146,6 +174,11 @@ export default defineMiddlewares({
       matcher: "/store/products*",
       methods: ["GET"],
       middlewares: [allowCardDetailFields, allowPullPoolFields],
+    },
+    {
+      matcher: "/admin/price-lists*",
+      methods: ["POST", "DELETE"],
+      middlewares: [revalidateStorefrontAfterPriceListChange],
     },
   ],
 });
