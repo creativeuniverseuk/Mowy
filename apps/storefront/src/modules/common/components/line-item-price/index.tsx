@@ -1,4 +1,5 @@
 import { getPercentageDiff } from "@lib/util/get-percentage-diff"
+import { getLineItemTotals } from "@lib/util/line-item-totals"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
@@ -14,10 +15,11 @@ const LineItemPrice = ({
   style = "default",
   currencyCode,
 }: LineItemPriceProps) => {
-  const { total, original_total } = item
-  const originalPrice = original_total
-  const currentPrice = total
-  const hasReducedPrice = currentPrice < originalPrice
+  const {
+    total: currentPrice,
+    originalTotal: originalPrice,
+    hasReducedPrice,
+  } = getLineItemTotals(item)
 
   return (
     <div className="flex flex-col gap-x-2 text-chrome-dim items-end">
@@ -40,7 +42,7 @@ const LineItemPrice = ({
             </p>
             {style === "default" && (
               <span className="text-cobalt-soft">
-                -{getPercentageDiff(originalPrice, currentPrice || 0)}%
+                -{getPercentageDiff(originalPrice, currentPrice)}%
               </span>
             )}
           </>
