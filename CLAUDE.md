@@ -452,6 +452,18 @@ database, so one Postgres instance still covers everything.
   future Medusa version adds a real sidebar-header zone, prefer it over this
   combination.
 
+## Pre-launch checklist
+
+- [ ] **Verify `global-error.tsx` actually renders** —
+  `apps/storefront/src/app/(storefront)/global-error.tsx` is confirmed
+  *present* only, not confirmed *working*. Next only renders it in a
+  production build (in `next dev` the error overlay replaces it), so it
+  can't be checked until one exists: `next build && next start`, force an
+  error in the root layout, and confirm this page shows. Next 15.3.9's
+  app loader looks for it at the root-layout segment, which suggests
+  `(storefront)` is the right spot for this multiple-root-layout setup,
+  but that's from reading Next's source, not from running it.
+
 ## Status
 
 Repo initialised with documentation only. No app code scaffolded yet.
