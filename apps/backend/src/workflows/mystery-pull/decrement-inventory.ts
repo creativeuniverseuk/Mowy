@@ -9,6 +9,10 @@ export type DecrementInventoryStepInput = {
 type DecrementInventoryOutput = {
   inventory_item_id: string | null;
   location_id: string | null;
+  // The inventory level adjusted — used by the workflow to emit
+  // `inventory-level.updated` with the same `{ id }` payload Medusa's own
+  // inventory workflows use (see index.ts).
+  inventory_level_id: string | null;
   decremented: boolean;
 };
 
@@ -45,6 +49,7 @@ export const decrementInventoryForOutcomeStep = createStep(
       const output: DecrementInventoryOutput = {
         inventory_item_id: null,
         location_id: null,
+        inventory_level_id: null,
         decremented: false,
       };
       return new StepResponse<DecrementInventoryOutput, DecrementInventoryCompensateInput>(
@@ -58,6 +63,7 @@ export const decrementInventoryForOutcomeStep = createStep(
       fields: [
         "id",
         "inventory_items.inventory_item_id",
+        "inventory_items.inventory.location_levels.id",
         "inventory_items.inventory.location_levels.location_id",
       ],
       filters: { id: input.outcome.linked_variant_id },
@@ -65,6 +71,8 @@ export const decrementInventoryForOutcomeStep = createStep(
 
     const inventoryItem = (variants[0] as any)?.inventory_items?.[0];
     const inventoryItemId: string | null = inventoryItem?.inventory_item_id ?? null;
+    const inventoryLevelId: string | null =
+      inventoryItem?.inventory?.location_levels?.[0]?.id ?? null;
     const locationId: string | null =
       inventoryItem?.inventory?.location_levels?.[0]?.location_id ?? null;
 
@@ -75,6 +83,7 @@ export const decrementInventoryForOutcomeStep = createStep(
       const output: DecrementInventoryOutput = {
         inventory_item_id: null,
         location_id: null,
+        inventory_level_id: null,
         decremented: false,
       };
       return new StepResponse<DecrementInventoryOutput, DecrementInventoryCompensateInput>(
@@ -86,7 +95,12 @@ export const decrementInventoryForOutcomeStep = createStep(
     await inventoryModuleService.adjustInventory(inventoryItemId, locationId, -1);
 
     return new StepResponse<DecrementInventoryOutput, DecrementInventoryCompensateInput>(
-      { inventory_item_id: inventoryItemId, location_id: locationId, decremented: true },
+      {
+        inventory_item_id: inventoryItemId,
+        location_id: locationId,
+        inventory_level_id: inventoryLevelId,
+        decremented: true,
+      },
       { inventory_item_id: inventoryItemId, location_id: locationId }
     );
   },

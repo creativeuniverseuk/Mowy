@@ -1,4 +1,11 @@
-import { createWorkflow, WorkflowResponse } from "@medusajs/framework/workflows-sdk";
+import {
+  createWorkflow,
+  transform,
+  when,
+  WorkflowResponse,
+} from "@medusajs/framework/workflows-sdk";
+import { InventoryLevelWorkflowEvents } from "@medusajs/framework/utils";
+import { emitEventStep } from "@medusajs/medusa/core-flows";
 import { assignOutcomeStep } from "./assign-outcome";
 import { decrementInventoryForOutcomeStep } from "./decrement-inventory";
 import { writeOutcomeMetadataStep } from "./write-outcome-metadata";
@@ -39,7 +46,23 @@ export const assignMysteryPullOutcomeWorkflow = createWorkflow(
       line_item_id: input.line_item_id,
     });
 
-    decrementInventoryForOutcomeStep({ outcome });
+    const decrement = decrementInventoryForOutcomeStep({ outcome });
+
+    // The decrement step calls the inventory module directly, which — unlike
+    // Medusa's own inventory workflows — emits no event, so the storefront's
+    // cached stock badge for the prize card would otherwise go stale (see
+    // src/subscribers/product-changed.ts). Same event and `{ id }` payload
+    // the core update-inventory-levels workflow emits. emitEventStep only
+    // releases it once the whole workflow succeeds, so a compensated
+    // (rolled-back) pull never triggers a revalidation.
+    when({ decrement }, ({ decrement }) => decrement.decremented).then(() => {
+      emitEventStep({
+        eventName: InventoryLevelWorkflowEvents.UPDATED,
+        data: transform({ decrement }, ({ decrement }) => ({
+          id: decrement.inventory_level_id,
+        })),
+      });
+    });
 
     writeOutcomeMetadataStep({
       line_item_id: input.line_item_id,
